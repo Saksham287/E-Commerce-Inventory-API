@@ -219,3 +219,7 @@ __marimo__/
 .DS_Store
 .obsidian/
 **/.obsidian/
+
+.env
+venv/
+__pycache__/
