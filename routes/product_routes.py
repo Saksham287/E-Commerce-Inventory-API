@@ -44,20 +44,67 @@ def create_product():
 @product_bp.route("/products", methods=["GET"])
 @staff_required
 def get_products():
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 5))
+
+    min_price = request.args.get("min_price")
+    max_price = request.args.get("max_price")
+    category_id = request.args.get("category_id")
+    search = request.args.get("search")
+
+    offset = (page - 1) * limit
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    query = """
         SELECT * FROM products
         WHERE is_active = TRUE
-    """)
+    """
 
+    values = []
+
+    if min_price:
+        query += " AND price >= %s"
+        values.append(min_price)
+
+    if max_price:
+        query += " AND price <= %s"
+        values.append(max_price)
+
+    if category_id:
+        query += " AND category_id = %s"
+        values.append(category_id)
+
+    if search:
+        query += " AND name LIKE %s"
+        values.append(f"%{search}%")
+
+    count_query = query.replace("SELECT *", "SELECT COUNT(*) as total")
+
+    cursor.execute(count_query, tuple(values))
+    total_records = cursor.fetchone()["total"]
+
+    query += " LIMIT %s OFFSET %s"
+    values.extend([limit, offset])
+
+    cursor.execute(query, tuple(values))
     products = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-    return {"data": products}, 200
+    total_pages = (total_records + limit - 1) // limit
+
+    return {
+        "data": products,
+        "pagination": {
+            "total_records": total_records,
+            "current_page": page,
+            "total_pages": total_pages,
+            "limit": limit
+        }
+    }, 200
 
 
 @product_bp.route("/products/<int:product_id>", methods=["PUT"])
