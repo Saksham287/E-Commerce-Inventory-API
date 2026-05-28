@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StockFlow | Inventory Management Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-surface-variant": "#464555",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface-container-highest": "#dae2fd",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "outline": "#777587",
+                        "on-surface": "#131b2e",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#004c6e",
+                        "tertiary-container": "#885500",
+                        "background": "#faf8ff",
+                        "on-secondary-fixed": "#001e2f",
+                        "surface-dim": "#d2d9f4",
+                        "secondary-fixed-dim": "#89ceff",
+                        "secondary": "#006591",
+                        "primary-fixed": "#e2dfff",
+                        "surface-tint": "#4d44e3",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary-container": "#ffd4a4",
+                        "secondary-container": "#39b8fd",
+                        "on-secondary-container": "#004666",
+                        "on-primary-container": "#dad7ff",
+                        "surface-variant": "#dae2fd",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "inverse-primary": "#c3c0ff",
+                        "surface-container-high": "#e2e7ff",
+                        "surface": "#faf8ff",
+                        "on-primary": "#ffffff",
+                        "primary": "#3525cd",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#c9e6ff",
+                        "inverse-on-surface": "#eef0ff",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-container": "#eaedff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f3ff",
+                        "tertiary": "#684000",
+                        "primary-container": "#4f46e5",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#283044",
+                        "outline-variant": "#c7c4d8",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-background": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-xl": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-xl": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- SideNavBar (JSON Derived) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest dark:bg-surface-container-lowest border-r border-outline-variant dark:border-outline-variant shadow-sm flex flex-col py-6 z-50">
+<div class="px-6 mb-8">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">StockFlow</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Management v2.4</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-primary dark:text-primary-fixed-dim font-bold bg-surface-container hover:bg-surface-container transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-label-md text-label-md">Categories</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label-md text-label-md">Products</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="warehouse">warehouse</span>
+<span class="font-label-md text-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors duration-200 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="flex items-center gap-3 px-4 py-3 w-full text-on-surface-variant hover:bg-error-container hover:text-on-error-container rounded-lg transition-colors duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</button>
+</div>
+</aside>
+<!-- TopNavBar (JSON Derived) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flex justify-between items-center px-lg">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary-container rounded-full overflow-hidden">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none pl-10 pr-4 py-2 font-body-md text-body-md focus:ring-0 outline-none" placeholder="Search inventory, orders, or users..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-full p-2 transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant">
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface leading-tight">Alex Rivera</p>
+<span class="px-2 py-0.5 bg-primary-container text-white text-[10px] rounded-full uppercase tracking-wider font-bold">Admin</span>
+</div>
+<img alt="User profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed" data-alt="A professional headshot of a Hispanic male warehouse administrator in his late 30s, wearing a clean charcoal polo shirt. The background is a brightly lit, high-end corporate office with soft blue and white highlights. He has a warm, confident expression, symbolizing trust and operational excellence. The lighting is crisp and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAsUxyJLghkuzJvaMzjtsWXpUmJPCeZOovS5n52sqrWk48ypkzVa3VjMA7dtRsIf-WxIJ0a0LScM8M8vFFwUHQvnvb5aa789k4KslxdKWJMP1-XpAFkaJRcFiMwvf8VYab5WrPt3h7omDgJ-aL9b8aiGnmbxFa_7wjn3BT5pApJ7tJocV0xW_gFaDgI_uxC_wj0kLFCUtU0DN6y1a-zQsFbYc7jRArAEZGDwTNPxcf00bG5pymqWcf7qAzE0ImjZPqIl7WeIu3smA"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 pb-12 px-lg max-w-[1440px] mx-auto">
+<!-- Welcome Header -->
+<div class="mb-xl flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Dashboard Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time snapshots of your warehouse operations.</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-md">
+<span class="material-symbols-outlined" data-icon="add" style="font-size: 20px;">add</span>
+                Add New Product
+            </button>
+</div>
+<!-- Bento Grid Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-xl">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-container/20 rounded-lg text-secondary">
+<span class="material-symbols-outlined" data-icon="inventory_2" data-weight="fill">inventory_2</span>
+</div>
+<span class="text-emerald-600 font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                        +12%
+                    </span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">Total Products</p>
+<h3 class="text-headline-md font-headline-md text-on-surface mt-1">12,842</h3>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-container/20 rounded-lg text-tertiary">
+<span class="material-symbols-outlined" data-icon="category" data-weight="fill">category</span>
+</div>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Active</span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">Categories</p>
+<h3 class="text-headline-md font-headline-md text-on-surface mt-1">142</h3>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-error-container/30 p-md rounded-xl border border-error/20 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-error-container rounded-lg text-error">
+<span class="material-symbols-outlined" data-icon="warning" data-weight="fill">warning</span>
+</div>
+<span class="text-error font-bold font-label-sm text-label-sm">Critical</span>
+</div>
+<p class="text-error font-label-md text-label-md uppercase tracking-wide">Low Stock Alerts</p>
+<h3 class="text-headline-md font-headline-md text-on-error-container mt-1">28 Items</h3>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-container/10 rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="shopping_cart_checkout" data-weight="fill">shopping_cart_checkout</span>
+</div>
+<span class="text-emerald-600 font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                        +24%
+                    </span>
+</div>
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wide">Orders Processed</p>
+<h3 class="text-headline-md font-headline-md text-on-surface mt-1">1,405</h3>
+</div>
+</div>
+<!-- Analytics Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Trends Line Chart (Visual Representation) -->
+<div class="lg:col-span-2 bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Product Inventory Trends</h4>
+<select class="bg-surface border border-outline-variant rounded-lg px-3 py-1 font-label-md text-label-md focus:ring-primary">
+<option>Last 30 Days</option>
+<option>Last 90 Days</option>
+</select>
+</div>
+<div class="h-[300px] w-full flex items-end justify-between gap-2 pt-4 relative">
+<!-- Fake Chart Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+<div class="border-t border-on-surface w-full"></div>
+</div>
+<!-- Fake Line Chart Path using SVG for precision -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q10,75 20,60 T40,45 T60,55 T80,30 T100,20" fill="none" stroke="url(#gradient-primary)" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path d="M0,80 Q10,75 20,60 T40,45 T60,55 T80,30 T100,20 V100 H0 Z" fill="url(#gradient-area)" opacity="0.1"></path>
+<defs>
+<lineargradient id="gradient-primary" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0%" stop-color="#3525cd"></stop>
+<stop offset="100%" stop-color="#39b8fd"></stop>
+</lineargradient>
+<lineargradient id="gradient-area" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#3525cd"></stop>
+<stop offset="100%" stop-color="transparent"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Floating Point -->
+<div class="absolute left-[79%] top-[28%] group cursor-pointer">
+<div class="w-3 h-3 bg-primary rounded-full border-2 border-white shadow-lg"></div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-inverse-surface text-inverse-on-surface px-2 py-1 rounded text-[10px] whitespace-nowrap">
+                            Stock: 4.2k
+                        </div>
+</div>
+</div>
+<div class="flex justify-between mt-4 font-label-sm text-label-sm text-on-surface-variant">
+<span>Oct 01</span>
+<span>Oct 10</span>
+<span>Oct 20</span>
+<span>Oct 31</span>
+</div>
+</div>
+<!-- Category Distribution Bar Chart -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm flex flex-col">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-6">Category Distribution</h4>
+<div class="flex-1 space-y-6">
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span>Electronics</span>
+<span class="font-bold">42%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span>Home &amp; Garden</span>
+<span class="font-bold">28%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 28%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span>Fashion</span>
+<span class="font-bold">18%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 18%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span>Toys</span>
+<span class="font-bold">12%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 text-primary font-label-md text-label-md hover:underline flex items-center justify-center gap-1">
+                    View Detailed Report <span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Activity Feed & Detailed Lists -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mt-xl">
+<!-- Recent Activity Feed -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm">
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-6">Recent Stock Movements</h4>
+<div class="space-y-6">
+<!-- Activity Item -->
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_circle">add_circle</span>
+</div>
+<div class="absolute top-10 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-outline-variant"></div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface"><span class="font-bold">Restocked:</span> Sony PlayStation 5</p>
+<p class="text-[12px] text-on-surface-variant">Warehouse A • 2 mins ago</p>
+<span class="inline-block mt-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">+50 Units</span>
+</div>
+</div>
+<!-- Activity Item -->
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+<span class="material-symbols-outlined text-[18px]" data-icon="swap_horiz">swap_horiz</span>
+</div>
+<div class="absolute top-10 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-outline-variant"></div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface"><span class="font-bold">Transfer:</span> KitchenAid Mixer</p>
+<p class="text-[12px] text-on-surface-variant">WH B → WH C • 14 mins ago</p>
+<span class="inline-block mt-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-bold">12 Units</span>
+</div>
+</div>
+<!-- Activity Item -->
+<div class="flex gap-4">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-error-container/50 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[18px]" data-icon="remove_circle">remove_circle</span>
+</div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface"><span class="font-bold">Out of Stock:</span> iPhone 15 Pro Case</p>
+<p class="text-[12px] text-on-surface-variant">Online Sales • 45 mins ago</p>
+<span class="inline-block mt-1 px-2 py-0.5 bg-error-container text-on-error-container rounded text-[10px] font-bold">Sold Out</span>
+</div>
+</div>
+</div>
+</div>
+<!-- High Priority Actions Card -->
+<div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+<!-- Promo Card 1 -->
+<div class="relative rounded-xl overflow-hidden group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 min-h-[240px]" data-alt="A clean, cinematic photograph of organized cardboard boxes with labels neatly stacked on steel industrial shelving in a modern warehouse. The lighting is bright and cool, emphasizing a light-mode aesthetic. Depth of field is shallow, focusing on a single label that says 'High Priority'. The color palette is composed of soft blues, whites, and cardboard browns." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARf71JLP6gVYQmcR0tavvr91nk05A4IjaBCf1iKOWbQpMKQ0TrCIRKMvUvJHVJZkn92P4L0DLmwjclLCVT0-4pSBbZNI4iX55LtJNZxPChKQAIU2PpYutJnPv7sP9ortVZd-Li1BDL6ARjlncvYI_-Pe3a_Yp8PfsJoHcMPLP6wJyITfWQsVUfpmBGP9A9YXKVtnjdVKbvy4T2p-0ZfT5ME-XYXsOsODJP2puwYmPJmRDH5BZZLiOubkRocuRlyC60x8fbmLRjtfc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-lg flex flex-col justify-end">
+<span class="text-white/70 font-label-sm text-label-sm uppercase tracking-widest mb-1">Logistics</span>
+<h5 class="text-white font-headline-sm text-headline-sm">Optimize Shelf Space</h5>
+<p class="text-white/80 font-body-sm text-body-sm mt-2">AI-driven suggestions for item placement to reduce pick times by 15%.</p>
+<button class="mt-4 bg-white text-on-surface w-fit px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary hover:text-white transition-colors">Start Analysis</button>
+</div>
+</div>
+<!-- Promo Card 2 -->
+<div class="bg-primary p-lg rounded-xl flex flex-col justify-between text-on-primary">
+<div>
+<div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-white" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<h5 class="font-headline-sm text-headline-sm">Inventory Forecasting</h5>
+<p class="text-on-primary/80 font-body-sm text-body-sm mt-2">Our predictive model suggests increasing stock of "Winter Outerwear" by 25% before the November spike.</p>
+</div>
+<button class="mt-6 border border-white/30 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-label-md text-label-md transition-colors backdrop-blur-sm">View Insights</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interaction for sidebar links
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                document.querySelectorAll('aside nav a').forEach(l => {
+                    l.classList.remove('text-primary', 'font-bold', 'bg-surface-container');
+                    l.classList.add('text-on-surface-variant');
+                });
+                link.classList.remove('text-on-surface-variant');
+                link.classList.add('text-primary', 'font-bold', 'bg-surface-container');
+            });
+        });
+
+        // Search bar interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary-container');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary-container');
+        });
+    </script>
+</body></html>

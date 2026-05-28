@@ -7,9 +7,13 @@ from routes.user_routes import user_bp
 from routes.category_routes import category_bp
 from routes.product_routes import product_bp
 
+from flask_cors import CORS
+
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(app)
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 

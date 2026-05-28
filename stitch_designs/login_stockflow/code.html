@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | StockFlow Inventory API</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#c3c0ff",
+                    "on-surface-variant": "#464555",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#ffddb8",
+                    "surface-container-highest": "#dae2fd",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "outline": "#777587",
+                    "on-surface": "#131b2e",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#004c6e",
+                    "tertiary-container": "#885500",
+                    "background": "#faf8ff",
+                    "on-secondary-fixed": "#001e2f",
+                    "surface-dim": "#d2d9f4",
+                    "secondary-fixed-dim": "#89ceff",
+                    "secondary": "#006591",
+                    "primary-fixed": "#e2dfff",
+                    "surface-tint": "#4d44e3",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "on-tertiary-container": "#ffd4a4",
+                    "secondary-container": "#39b8fd",
+                    "on-secondary-container": "#004666",
+                    "on-primary-container": "#dad7ff",
+                    "surface-variant": "#dae2fd",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "inverse-primary": "#c3c0ff",
+                    "surface-container-high": "#e2e7ff",
+                    "surface": "#faf8ff",
+                    "on-primary": "#ffffff",
+                    "primary": "#3525cd",
+                    "surface-bright": "#faf8ff",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#c9e6ff",
+                    "inverse-on-surface": "#eef0ff",
+                    "on-primary-fixed": "#0f0069",
+                    "surface-container": "#eaedff",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f2f3ff",
+                    "tertiary": "#684000",
+                    "primary-container": "#4f46e5",
+                    "on-error": "#ffffff",
+                    "inverse-surface": "#283044",
+                    "outline-variant": "#c7c4d8",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#2a1700",
+                    "on-background": "#131b2e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "margin-desktop": "40px",
+                    "gutter": "24px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "lg": "24px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "headline-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-xl": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                    "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                    "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                    "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                    "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                    "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                    "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                    "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                    "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                    "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #faf8ff; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .pattern-bg {
+            background-color: #3525cd;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-md md:p-0">
+<main class="w-full max-w-[1440px] min-h-[800px] bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+<!-- Left Section: Login Form -->
+<section class="w-full md:w-[45%] flex flex-col justify-center px-lg md:px-xl py-xl bg-surface-container-lowest">
+<div class="max-w-md mx-auto w-full">
+<!-- Brand Identity -->
+<div class="mb-xl">
+<img alt="StockFlow Logo" class="h-12 w-12 object-contain mb-md" src="data:image/png;base64,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"/>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-base">Welcome back</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Enter your credentials to manage your inventory.</p>
+</div>
+<!-- Form -->
+<form class="space-y-lg" onsubmit="return false;">
+<div class="space-y-sm">
+<label class="block font-label-md text-label-md text-on-surface" for="username">Username</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">person</span>
+<input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all font-body-md text-body-md text-on-surface" id="username" name="username" placeholder="janesmith_dev" type="text"/>
+</div>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="block font-label-md text-label-md text-on-surface" for="password">Password</label>
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="#">Forgot?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">lock</span>
+<input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary-container focus:border-primary-container outline-none transition-all font-body-md text-body-md text-on-surface" id="password" name="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<input class="w-4 h-4 text-primary border-outline-variant rounded focus:ring-primary-container" id="remember" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface-variant" for="remember">Keep me logged in for 30 days</label>
+</div>
+<button class="w-full py-md bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex justify-center items-center gap-sm" type="submit">
+                        Login to StockFlow
+                        <span class="material-symbols-outlined text-md">arrow_forward</span>
+</button>
+</form>
+<!-- Footer Actions -->
+<div class="mt-xl pt-lg border-t border-outline-variant text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                        New to the platform? 
+                        <a class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors ml-xs" href="#">Register account</a>
+</p>
+</div>
+<div class="mt-xl flex justify-center gap-lg grayscale opacity-50">
+<span class="material-symbols-outlined text-xl">shield</span>
+<span class="material-symbols-outlined text-xl">verified_user</span>
+<span class="material-symbols-outlined text-xl">lock_reset</span>
+</div>
+</div>
+</section>
+<!-- Right Section: Illustration / Visual Anchor -->
+<section class="hidden md:flex w-[55%] pattern-bg relative items-center justify-center p-xl">
+<!-- Decorative Elements -->
+<div class="absolute top-xl left-xl text-on-primary/20">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'wght' 100;">api</span>
+</div>
+<div class="relative z-10 w-full max-w-lg">
+<div class="glass-effect p-xl rounded-xl shadow-2xl space-y-lg">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 bg-primary-container/20 rounded-lg flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-primary">Real-time Sync</h3>
+<p class="font-body-sm text-body-sm text-on-primary/80">Inventory levels updated across 20+ channels instantly.</p>
+</div>
+</div>
+<div class="h-px bg-on-primary/10"></div>
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-surface/5 p-md rounded-lg border border-on-primary/10">
+<div class="text-primary-fixed-dim font-headline-md mb-base">99.9%</div>
+<div class="text-on-primary/60 font-label-sm uppercase">API Uptime</div>
+</div>
+<div class="bg-surface/5 p-md rounded-lg border border-on-primary/10">
+<div class="text-primary-fixed-dim font-headline-md mb-base">2.4ms</div>
+<div class="text-on-primary/60 font-label-sm uppercase">Latency</div>
+</div>
+</div>
+<div class="pt-md">
+<div class="bg-on-primary/5 rounded-lg p-md overflow-hidden relative">
+<div class="flex gap-base mb-sm">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+</div>
+<code class="text-on-primary/70 font-mono text-[12px] block leading-relaxed">
+<span class="text-tertiary-fixed">GET</span> /v2/inventory/SKU-9921 <br/>
+                                {<br/>
+                                  "status": <span class="text-secondary-fixed">"in_stock"</span>,<br/>
+                                  "quantity": <span class="text-primary-fixed-dim">1240</span>,<br/>
+                                  "location": <span class="text-secondary-fixed">"Warehouse-A"</span><br/>
+                                }
+                            </code>
+</div>
+</div>
+</div>
+<div class="mt-xl text-center">
+<p class="font-body-md text-body-md text-on-primary/90 italic">
+                        "The most reliable inventory API we've integrated in a decade of e-commerce."
+                    </p>
+<div class="mt-md flex items-center justify-center gap-sm">
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary-fixed-dim">
+<div class="w-full h-full bg-surface-container-highest" data-alt="A professional headshot of a software engineer with a friendly expression, set against a blurred modern office background with soft bokeh. The lighting is bright and clean, matching a corporate tech aesthetic with cool blue and white tones."></div>
+</div>
+<span class="font-label-md text-label-md text-on-primary">Marcus Chen, CTO at GlobalShop</span>
+</div>
+</div>
+</div>
+<!-- Background Gradient Glow -->
+<div class="absolute bottom-0 right-0 w-96 h-96 bg-primary-container blur-[120px] opacity-30 rounded-full translate-x-1/2 translate-y-1/2"></div>
+</section>
+</main>
+<script>
+        // Simple input focus effects and basic micro-interactions
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('.material-symbols-outlined').style.color = '#3525cd';
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('.material-symbols-outlined').style.color = '#777587';
+            });
+        });
+
+        // Button ripple or scale effect handle
+        const loginBtn = document.querySelector('button[type="submit"]');
+        loginBtn.addEventListener('click', function(e) {
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Authenticating...';
+            setTimeout(() => {
+                this.innerHTML = 'Login to StockFlow <span class="material-symbols-outlined text-md">arrow_forward</span>';
+            }, 2000);
+        });
+    </script>
+</body></html>
