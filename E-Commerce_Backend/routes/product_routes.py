@@ -45,7 +45,7 @@ def create_product():
 @staff_required
 def get_products():
     page = int(request.args.get("page", 1))
-    limit = int(request.args.get("limit", 5))
+    limit = int(request.args.get("limit", 20))
 
     min_price = request.args.get("min_price")
     max_price = request.args.get("max_price")

@@ -62,7 +62,7 @@ function App() {
       <main className="ml-64 flex-1">
         {page === "dashboard" && <Dashboard setPage={setPage} />}
         {page === "products" && <Products />}
-        {page === "categories" && <Categories />}
+        {page === "categories" && <Categories setPage={setPage} />}
         {page === "inventory" && <Inventory />}
         {page === "users" && <Users />}
       </main>

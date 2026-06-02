@@ -10,20 +10,33 @@ function Login({ onLogin }) {
 
     async function handleLogin(e) {
     e.preventDefault();
+    setMessage("");
 
-    const data = await login(username, password);
+    try {
+        const data = await login(username, password);
 
-    if (data.access_token) {
+        if (data.access_token) {
         localStorage.setItem("token", data.access_token);
         onLogin();
-    } else {
+        } else {
         setMessage(data.message || "Login failed");
+        }
+    } catch (error) {
+        setMessage("Login failed. Check backend server.");
+        console.error(error);
     }
     }
 
     async function handleRegister() {
-    const data = await register(username, password, role);
-    setMessage(data.message || "Registered successfully. Now login.");
+    setMessage("");
+
+    try {
+        const data = await register(username, password, role);
+        setMessage(data.message || "Registered successfully. Now login.");
+    } catch (error) {
+        setMessage("Register failed. Check backend server.");
+        console.error(error);
+    }
     }
 
     return (
@@ -53,26 +66,20 @@ function Login({ onLogin }) {
                 className="w-full rounded-lg border border-slate-300 px-4 py-3"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="janesmith_dev"
+                placeholder="Username"
                 />
             </div>
 
             <div>
-                <div className="flex justify-between mb-2">
-                <label className="block text-sm font-semibold">
-                    Password
+                <label className="block text-sm font-semibold mb-2">
+                Password
                 </label>
-                <span className="text-sm text-indigo-600 font-semibold">
-                    Forgot?
-                </span>
-                </div>
-
                 <input
                 className="w-full rounded-lg border border-slate-300 px-4 py-3"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Password"
                 />
             </div>
 
@@ -86,18 +93,11 @@ function Login({ onLogin }) {
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                 >
-                    <option>Admin</option>
-                    <option>Staff</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Staff">Staff</option>
                 </select>
                 </div>
             )}
-
-            <div className="flex items-center gap-2">
-                <input type="checkbox" />
-                <span className="text-sm text-slate-500">
-                Keep me logged in for 30 days
-                </span>
-            </div>
 
             <button
                 type="submit"
@@ -108,9 +108,10 @@ function Login({ onLogin }) {
             </form>
 
             <div className="mt-8 pt-5 border-t text-center">
-            <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500">
                 New to the platform?{" "}
                 <button
+                type="button"
                 onClick={() => setShowRegister(!showRegister)}
                 className="text-indigo-600 font-semibold"
                 >
@@ -120,6 +121,7 @@ function Login({ onLogin }) {
 
             {showRegister && (
                 <button
+                type="button"
                 onClick={handleRegister}
                 className="mt-4 rounded-lg border border-indigo-600 text-indigo-600 px-5 py-2 font-semibold hover:bg-indigo-50"
                 >
@@ -128,7 +130,9 @@ function Login({ onLogin }) {
             )}
             </div>
 
-            {message && <p className="text-red-500 mt-4 text-center">{message}</p>}
+            {message && (
+            <p className="text-red-500 mt-4 text-center">{message}</p>
+            )}
         </section>
 
         <section className="bg-indigo-700 text-white p-10 flex flex-col justify-center">
@@ -145,7 +149,9 @@ function Login({ onLogin }) {
             </div>
 
             <div className="bg-white/10 rounded-xl p-5">
-                <h3 className="font-bold text-lg">Secure JWT Authentication</h3>
+                <h3 className="font-bold text-lg">
+                Secure JWT Authentication
+                </h3>
                 <p className="text-indigo-100">
                 Role-based access with Admin and Staff permissions.
                 </p>

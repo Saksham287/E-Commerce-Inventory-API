@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { getUsers, register, updateUser, deleteUser } from "../services/api";
+import {
+    getUsers,
+    register,
+    updateUser,
+    updateUserStatus,
+} from "../services/api";
+import AddUserModal from "../components/AddUserModal";
 
 function Users() {
     const [users, setUsers] = useState([]);
-    const [showForm, setShowForm] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [message, setMessage] = useState("");
-
-    const [form, setForm] = useState({
-    username: "",
-    password: "",
-    role: "Staff",
-    });
 
     async function loadUsers() {
     const data = await getUsers();
@@ -22,38 +22,32 @@ function Users() {
     loadUsers();
     }, []);
 
-    async function handleSaveUser() {
+    function handleEdit(user) {
+    setEditingUser(user);
+    setShowAddModal(true);
+    }
+
+    async function handleInactive(id) {
+    await updateUserStatus(id, "Inactive");
+    setMessage("User marked as inactive");
+    loadUsers();
+    }
+
+    async function handleSaveUser(data) {
     if (editingUser) {
         await updateUser(editingUser.id, {
-        username: form.username,
-        role: form.role,
+        username: data.username,
+        role: data.role,
         });
 
         setMessage("User updated successfully");
     } else {
-        await register(form.username, form.password, form.role);
+        await register(data.username, data.password, data.role);
         setMessage("User added successfully");
     }
 
-    setForm({ username: "", password: "", role: "Staff" });
+    setShowAddModal(false);
     setEditingUser(null);
-    setShowForm(false);
-    loadUsers();
-    }
-
-    function handleEdit(user) {
-    setEditingUser(user);
-    setForm({
-        username: user.username,
-        password: "",
-        role: user.role,
-    });
-    setShowForm(true);
-    }
-
-    async function handleDelete(id) {
-    await deleteUser(id);
-    setMessage("User deleted successfully");
     loadUsers();
     }
 
@@ -71,52 +65,14 @@ function Users() {
 
         <button
             onClick={() => {
-            setShowForm(!showForm);
             setEditingUser(null);
-            setForm({ username: "", password: "", role: "Staff" });
+            setShowAddModal(true);
             }}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm"
         >
             + Add New User
         </button>
         </div>
-
-        {showForm && (
-        <div className="bg-white border rounded-xl shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input
-            className="border rounded-lg px-4 py-3"
-            placeholder="Username"
-            value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
-            />
-
-            {!editingUser && (
-            <input
-                className="border rounded-lg px-4 py-3"
-                placeholder="Password"
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-            )}
-
-            <select
-            className="border rounded-lg px-4 py-3"
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-            >
-            <option>Admin</option>
-            <option>Staff</option>
-            </select>
-
-            <button
-            onClick={handleSaveUser}
-            className="bg-indigo-600 text-white rounded-lg font-semibold px-4 py-3"
-            >
-            {editingUser ? "Update User" : "Save User"}
-            </button>
-        </div>
-        )}
 
         <div className="grid grid-cols-12 gap-6 mb-8">
         <div className="col-span-12 lg:col-span-8 bg-white border rounded-xl p-6 shadow-sm flex flex-wrap items-center gap-4">
@@ -138,6 +94,7 @@ function Users() {
             <select className="w-full border rounded-lg px-4 py-3">
                 <option>All Statuses</option>
                 <option>Active</option>
+                <option>Inactive</option>
             </select>
             </div>
 
@@ -150,7 +107,9 @@ function Users() {
             <p className="text-sm uppercase tracking-widest text-indigo-100 mb-2">
             Total Active Users
             </p>
-            <h3 className="text-5xl font-bold">{users.length}</h3>
+            <h3 className="text-5xl font-bold">
+            {users.filter((user) => user.status !== "Inactive").length}
+            </h3>
             <p className="mt-4 text-indigo-100">Users from MySQL database</p>
         </div>
         </div>
@@ -211,12 +170,20 @@ function Users() {
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                        Active
+                    <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        user.status === "Inactive"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-emerald-100 text-emerald-700"
+                        }`}
+                    >
+                        {user.status || "Active"}
                     </span>
                     </td>
 
-                    <td className="px-6 py-4 text-slate-500"></td>
+                    <td className="px-6 py-4 text-slate-500">
+                    {user.last_login || "—"}
+                    </td>
 
                     <td className="px-6 py-4 text-right">
                     <button
@@ -226,19 +193,24 @@ function Users() {
                         Edit
                     </button>
 
-                    <button
-                        onClick={() => handleDelete(user.id)}
-                        className="text-red-600"
-                    >
-                        Delete
-                    </button>
+                    {user.status !== "Inactive" && (
+                        <button
+                        onClick={() => handleInactive(user.id)}
+                        className="text-orange-600 font-medium"
+                        >
+                        Inactive
+                        </button>
+                    )}
                     </td>
                 </tr>
                 ))}
 
                 {users.length === 0 && (
                 <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
+                    <td
+                    colSpan="5"
+                    className="px-6 py-8 text-center text-slate-500"
+                    >
                     No users found or admin access required.
                     </td>
                 </tr>
@@ -248,9 +220,7 @@ function Users() {
         </div>
 
         <div className="px-6 py-4 bg-slate-50 flex justify-between items-center border-t">
-            <p className="text-sm text-slate-500">
-            Showing {users.length} users
-            </p>
+            <p className="text-sm text-slate-500">Showing {users.length} users</p>
 
             <div className="flex gap-2">
             <button className="border px-4 py-2 rounded-lg">Previous</button>
@@ -261,6 +231,17 @@ function Users() {
             </div>
         </div>
         </div>
+
+        {showAddModal && (
+        <AddUserModal
+            editingUser={editingUser}
+            onClose={() => {
+            setShowAddModal(false);
+            setEditingUser(null);
+            }}
+            onSave={handleSaveUser}
+        />
+        )}
 
         {message && (
         <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-xl">

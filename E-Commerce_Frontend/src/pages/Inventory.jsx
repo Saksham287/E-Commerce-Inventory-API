@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getProducts, orderProduct, restockProduct } from "../services/api";
+import {
+  getProducts,
+  orderProduct,
+  restockProduct,
+} from "../services/api";
 
 function Inventory() {
   const [products, setProducts] = useState([]);
@@ -8,13 +12,63 @@ function Inventory() {
   const [message, setMessage] = useState("");
 
   async function loadProducts() {
-    const data = await getProducts();
-    setProducts(data.data || []);
+    try {
+      const data = await getProducts();
+      setProducts(data.data || data || []);
+    } catch (error) {
+      console.error("Failed to load products:", error);
+      setProducts([]);
+    }
   }
 
   useEffect(() => {
     loadProducts();
   }, []);
+
+  function handleExportCSV() {
+    if (products.length === 0) {
+      setMessage("No inventory data to export");
+      return;
+    }
+
+    const headers = ["Product", "SKU", "Current Stock", "Status"];
+
+    const rows = products.map((product) => {
+      const stock = Number(product.stock_quantity);
+
+      let status = "In Stock";
+      if (stock === 0) status = "Out of Stock";
+      else if (stock <= 10) status = "Low Stock";
+
+      return [
+        product.name,
+        product.sku,
+        product.stock_quantity,
+        status,
+      ];
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "inventory.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+    setMessage("CSV exported successfully");
+  }
 
   async function handleOrder() {
     if (!selectedProductId || !quantity) return;
@@ -50,15 +104,12 @@ function Inventory() {
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <button className="bg-white border text-slate-700 px-6 py-3 rounded-xl font-semibold">
-            Export CSV
-          </button>
-
-          <button className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold">
-            + New Item
-          </button>
-        </div>
+        <button
+          onClick={handleExportCSV}
+          className="bg-white border text-slate-700 px-6 py-3 rounded-xl font-semibold"
+        >
+          Export CSV
+        </button>
       </div>
 
       <div className="grid grid-cols-12 gap-6">

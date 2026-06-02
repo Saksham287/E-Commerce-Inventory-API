@@ -1,0 +1,337 @@
+.products-page {
+  padding: 24px;
+  background: #f8f7ff;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.products-header h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.products-header p {
+  margin: 4px 0 0;
+  color: #526789;
+}
+
+.add-product-btn {
+  background: #4f36f5;
+  color: white;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.products-top {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.filters-card {
+  background: white;
+  border: 1px solid #111;
+  border-radius: 12px;
+  padding: 26px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  align-items: end;
+}
+
+.filter-group label {
+  display: block;
+  color: #526789;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #111;
+  border-radius: 8px;
+  font-size: 15px;
+  background: white;
+}
+
+.price-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-buttons button {
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid #64748b;
+  background: white;
+  color: #526789;
+  cursor: pointer;
+}
+
+.status-buttons button.active {
+  color: #4f36f5;
+  border-color: #4f36f5;
+  background: #f1efff;
+}
+
+.clear-filter-btn {
+  height: 38px;
+  border: none;
+  border-radius: 8px;
+  background: #ef4444;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.value-card {
+  background: linear-gradient(135deg, #5636f5, #4328ef);
+  color: white;
+  border-radius: 10px;
+  padding: 26px;
+}
+
+.value-card h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.value-card h2 {
+  margin: 0 0 18px;
+  font-size: 34px;
+}
+
+.value-card p {
+  margin: 0;
+}
+
+.products-table-card {
+  background: white;
+  border: 1px solid #111;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.products-table-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.products-table-card thead {
+  background: #f1f5f9;
+}
+
+.products-table-card th {
+  padding: 18px 24px;
+  text-align: left;
+  color: #526789;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.products-table-card td {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+
+.products-table-card td p {
+  margin: 4px 0 0;
+  color: #526789;
+}
+
+.product-avatar {
+  width: 48px;
+  height: 48px;
+  background: #dfe4ff;
+  color: #4f36f5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.status-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.in-stock {
+  background: #dcfce7;
+  color: #15935c;
+}
+
+.low-stock {
+  background: #fff7db;
+  color: #e67800;
+}
+
+.out-stock {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.edit-btn,
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  color: #4f36f5;
+}
+
+.delete-btn {
+  color: red;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 32px;
+  color: #64748b;
+}
+
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.table-footer p {
+  color: #526789;
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagination button,
+.pagination span {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #111;
+  background: white;
+}
+
+.pagination span {
+  background: #4f36f5;
+  color: white;
+  border-color: #4f36f5;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modal-box {
+  width: 430px;
+  max-width: 100%;
+  background: white;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.3);
+}
+
+.modal-box h2 {
+  margin: 0 0 20px;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.modal-box form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-box label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #526789;
+  margin-top: 4px;
+}
+
+.modal-box input,
+.modal-box select {
+  width: 100%;
+  height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.modal-actions button {
+  padding: 11px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-actions button:first-child {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal-actions button:last-child {
+  background: #4f36f5;
+  color: white;
+}
