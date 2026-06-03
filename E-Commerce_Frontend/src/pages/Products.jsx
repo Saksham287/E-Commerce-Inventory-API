@@ -402,14 +402,28 @@ function Products() {
         </table>
 
         <div className="table-footer">
-          <p>Showing {filteredProducts.length} products</p>
+          <p>
+            {filteredProducts.length === 0
+            ? "Showing 0 of 0 products"
+            : `Showing ${
+              (page - 1) * productsPerPage + 1
+            }-${Math.min(
+              page * productsPerPage,
+              filteredProducts.length
+            )} of ${filteredProducts.length} products`}
+          </p>
 
           <div className="pagination">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
               Previous
             </button>
 
-            <span>{page}</span>
+            <span>
+              Page {page} of {totalPages}
+            </span>
 
             <button
               disabled={page === totalPages}
@@ -419,7 +433,7 @@ function Products() {
             </button>
           </div>
         </div>
-      </div>
+      </div>  
 
       {showAddModal && (
         <AddProductModal
