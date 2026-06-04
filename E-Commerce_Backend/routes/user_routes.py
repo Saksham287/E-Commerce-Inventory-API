@@ -40,6 +40,19 @@ def admin_required(func):
     return wrapper
 
 
+def has_status_column():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SHOW COLUMNS FROM users LIKE 'status'")
+        result = cursor.fetchone()
+        return result is not None
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @user_bp.route("/users/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -66,13 +79,22 @@ def register():
     cursor = conn.cursor()
 
     try:
-        cursor.execute(
-            """
-            INSERT INTO users (username, password_hash, role)
-            VALUES (%s, %s, %s)
-            """,
-            (username, hashed_password, role)
-        )
+        if has_status_column():
+            cursor.execute(
+                """
+                INSERT INTO users (username, password_hash, role, status)
+                VALUES (%s, %s, %s, 'Active')
+                """,
+                (username, hashed_password, role)
+            )
+        else:
+            cursor.execute(
+                """
+                INSERT INTO users (username, password_hash, role)
+                VALUES (%s, %s, %s)
+                """,
+                (username, hashed_password, role)
+            )
 
         conn.commit()
 
@@ -108,21 +130,33 @@ def login():
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT * FROM users WHERE username = %s",
-        (username,)
-    )
+    try:
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE username = %s
+            """,
+            (username,)
+        )
 
-    user = cursor.fetchone()
+        user = cursor.fetchone()
 
-    cursor.close()
-    conn.close()
+    finally:
+        cursor.close()
+        conn.close()
 
     if not user:
         return {
             "status": "error",
             "message": "Invalid username or password"
         }, 401
+
+    if "status" in user and user["status"] == "Inactive":
+        return {
+            "status": "error",
+            "message": "This account has been deactivated"
+        }, 403
 
     if not check_password_hash(user["password_hash"], password):
         return {
@@ -141,11 +175,12 @@ def login():
     return {
         "status": "success",
         "message": "Login successful",
-        "access_token": access_token,
+        "token": access_token,
         "user": {
             "id": user["id"],
             "username": user["username"],
-            "role": user["role"]
+            "role": user["role"],
+            "status": user["status"] if "status" in user else "Active"
         }
     }, 200
 
@@ -156,23 +191,38 @@ def get_users():
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id, username, role
-        FROM users
-        ORDER BY id ASC
-        """
-    )
+    try:
+        if has_status_column():
+            cursor.execute(
+                """
+                SELECT id, username, role, status
+                FROM users
+                ORDER BY id ASC
+                """
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT id, username, role
+                FROM users
+                ORDER BY id ASC
+                """
+            )
 
-    users = cursor.fetchall()
+        users = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
+        for user in users:
+            if "status" not in user:
+                user["status"] = "Active"
 
-    return {
-        "status": "success",
-        "data": users
-    }, 200
+        return {
+            "status": "success",
+            "data": users
+        }, 200
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @user_bp.route("/users/<int:user_id>", methods=["PUT"])
@@ -198,24 +248,71 @@ def update_user(user_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        UPDATE users
-        SET username = %s, role = %s
-        WHERE id = %s
-        """,
-        (username, role, user_id)
-    )
+    try:
+        cursor.execute(
+            """
+            UPDATE users
+            SET username = %s,
+                role = %s
+            WHERE id = %s
+            """,
+            (username, role, user_id)
+        )
 
-    conn.commit()
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        return {
+            "status": "success",
+            "message": "User updated successfully"
+        }, 200
 
-    return {
-        "status": "success",
-        "message": "User updated successfully"
-    }, 200
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@user_bp.route("/users/<int:user_id>/status", methods=["PUT"])
+@admin_required
+def update_user_status(user_id):
+    data = request.get_json()
+
+    status = data.get("status")
+
+    if status not in ["Active", "Inactive"]:
+        return {
+            "status": "error",
+            "message": "Status must be Active or Inactive"
+        }, 400
+
+    if not has_status_column():
+        return {
+            "status": "error",
+            "message": "Database is missing status column. Add status column to users table first."
+        }, 500
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            """
+            UPDATE users
+            SET status = %s
+            WHERE id = %s
+            """,
+            (status, user_id)
+        )
+
+        conn.commit()
+
+        return {
+            "status": "success",
+            "message": f"User marked as {status}"
+        }, 200
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @user_bp.route("/users/<int:user_id>", methods=["DELETE"])
@@ -224,17 +321,19 @@ def delete_user(user_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "DELETE FROM users WHERE id = %s",
-        (user_id,)
-    )
+    try:
+        cursor.execute(
+            "DELETE FROM users WHERE id = %s",
+            (user_id,)
+        )
 
-    conn.commit()
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        return {
+            "status": "success",
+            "message": "User deleted successfully"
+        }, 200
 
-    return {
-        "status": "success",
-        "message": "User deleted successfully"
-    }, 200
+    finally:
+        cursor.close()
+        conn.close()

@@ -34,10 +34,18 @@ export async function login(username, password) {
 
   const data = await handleResponse(response);
 
-  localStorage.setItem("username", username);
+  const token = data.token || data.access_token;
 
-  if (data.token) {
-    localStorage.setItem("token", data.token);
+  if (token) {
+    localStorage.setItem("token", token);
+  }
+
+  if (data.user) {
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("username", data.user.username);
+    localStorage.setItem("role", data.user.role);
+  } else {
+    localStorage.setItem("username", username);
   }
 
   return data;
@@ -46,7 +54,7 @@ export async function login(username, password) {
 export async function register(username, password, role) {
   const response = await fetch(`${API_BASE_URL}/users/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getHeaders(),
     body: JSON.stringify({ username, password, role }),
   });
 
