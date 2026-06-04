@@ -1,15 +1,22 @@
 import React, { useEffect, useState } from "react";
-import {
-  getProducts,
-  orderProduct,
-  restockProduct,
-} from "../services/api";
+import { getProducts, orderProduct, restockProduct } from "../services/api";
 
 function Inventory() {
   const [products, setProducts] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [quantity, setQuantity] = useState("");
+
+  const [orderProductId, setOrderProductId] = useState("");
+  const [orderQuantity, setOrderQuantity] = useState("");
+
+  const [restockProductId, setRestockProductId] = useState("");
+  const [restockQuantity, setRestockQuantity] = useState("");
+
   const [message, setMessage] = useState("");
+  const [activeLog, setActiveLog] = useState("all");
+
+  const [logs, setLogs] = useState(() => {
+    const savedLogs = localStorage.getItem("inventoryLogs");
+    return savedLogs ? JSON.parse(savedLogs) : [];
+  });
 
   async function loadProducts() {
     try {
@@ -24,6 +31,27 @@ function Inventory() {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("inventoryLogs", JSON.stringify(logs));
+  }, [logs]);
+
+  function addLog(type, productName, sku, quantity) {
+    const user = localStorage.getItem("username") || "Unknown User";
+
+    setLogs((prevLogs) => [
+      {
+        id: Date.now(),
+        type,
+        productName,
+        sku,
+        quantity,
+        user,
+        time: new Date().toLocaleString(),
+      },
+      ...prevLogs,
+    ]);
+  }
 
   function handleExportCSV() {
     if (products.length === 0) {
@@ -40,12 +68,7 @@ function Inventory() {
       if (stock === 0) status = "Out of Stock";
       else if (stock <= 10) status = "Low Stock";
 
-      return [
-        product.name,
-        product.sku,
-        product.stock_quantity,
-        status,
-      ];
+      return [product.name, product.sku, product.stock_quantity, status];
     });
 
     const csvContent = [
@@ -71,26 +94,73 @@ function Inventory() {
   }
 
   async function handleOrder() {
-    if (!selectedProductId || !quantity) return;
+    if (!orderProductId || !orderQuantity) {
+      setMessage("Please select a product and enter quantity");
+      return;
+    }
 
-    const data = await orderProduct(selectedProductId, quantity);
-    setMessage(data.message || data.status || "Order request completed");
-    setQuantity("");
-    loadProducts();
+    try {
+      const product = products.find(
+        (item) => String(item.id) === String(orderProductId)
+      );
+
+      const data = await orderProduct(orderProductId, orderQuantity);
+
+      addLog(
+        "shipment",
+        product?.name || "Unknown Product",
+        product?.sku || "-",
+        orderQuantity
+      );
+
+      setMessage(data.message || data.status || "Shipment completed");
+
+      setOrderProductId("");
+      setOrderQuantity("");
+
+      loadProducts();
+    } catch (error) {
+      setMessage(error.message || "Shipment failed");
+    }
   }
 
   async function handleRestock() {
-    if (!selectedProductId || !quantity) return;
+    if (!restockProductId || !restockQuantity) {
+      setMessage("Please select a product and enter quantity");
+      return;
+    }
 
-    const data = await restockProduct(selectedProductId, quantity);
-    setMessage(data.message || data.status || "Restock request completed");
-    setQuantity("");
-    loadProducts();
+    try {
+      const product = products.find(
+        (item) => String(item.id) === String(restockProductId)
+      );
+
+      const data = await restockProduct(restockProductId, restockQuantity);
+
+      addLog(
+        "restock",
+        product?.name || "Unknown Product",
+        product?.sku || "-",
+        restockQuantity
+      );
+
+      setMessage(data.message || data.status || "Restock completed");
+
+      setRestockProductId("");
+      setRestockQuantity("");
+
+      loadProducts();
+    } catch (error) {
+      setMessage(error.message || "Restock failed");
+    }
   }
 
   const lowStockProducts = products.filter(
     (product) => Number(product.stock_quantity) <= 10
   );
+
+  const filteredLogs =
+    activeLog === "all" ? logs : logs.filter((log) => log.type === activeLog);
 
   return (
     <div className="bg-[#faf8ff] min-h-screen p-8">
@@ -126,8 +196,8 @@ function Inventory() {
 
             <select
               className="w-full border rounded-lg px-4 py-3 mb-4"
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
+              value={orderProductId}
+              onChange={(e) => setOrderProductId(e.target.value)}
             >
               <option value="">Select product</option>
               {products.map((product) => (
@@ -139,16 +209,18 @@ function Inventory() {
 
             <input
               className="w-full border rounded-lg px-4 py-3 mb-4"
+              type="number"
+              min="1"
               placeholder="Quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              value={orderQuantity}
+              onChange={(e) => setOrderQuantity(e.target.value)}
             />
 
             <button
               onClick={handleOrder}
               className="text-indigo-600 font-semibold"
             >
-              Start Order →
+              Start Shipment →
             </button>
           </div>
 
@@ -164,8 +236,8 @@ function Inventory() {
 
             <select
               className="w-full border rounded-lg px-4 py-3 mb-4"
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
+              value={restockProductId}
+              onChange={(e) => setRestockProductId(e.target.value)}
             >
               <option value="">Select product</option>
               {products.map((product) => (
@@ -177,9 +249,11 @@ function Inventory() {
 
             <input
               className="w-full border rounded-lg px-4 py-3 mb-4"
+              type="number"
+              min="1"
               placeholder="Quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              value={restockQuantity}
+              onChange={(e) => setRestockQuantity(e.target.value)}
             />
 
             <button
@@ -232,13 +306,36 @@ function Inventory() {
             <h3 className="text-2xl font-bold">Inventory History</h3>
 
             <div className="flex gap-2">
-              <button className="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-semibold">
+              <button
+                onClick={() => setActiveLog("all")}
+                className={`px-3 py-1 rounded-lg font-semibold ${
+                  activeLog === "all"
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-slate-500"
+                }`}
+              >
                 All Logs
               </button>
-              <button className="px-3 py-1 rounded-lg text-slate-500">
+
+              <button
+                onClick={() => setActiveLog("restock")}
+                className={`px-3 py-1 rounded-lg font-semibold ${
+                  activeLog === "restock"
+                    ? "bg-cyan-50 text-cyan-700"
+                    : "text-slate-500"
+                }`}
+              >
                 Restocks
               </button>
-              <button className="px-3 py-1 rounded-lg text-slate-500">
+
+              <button
+                onClick={() => setActiveLog("shipment")}
+                className={`px-3 py-1 rounded-lg font-semibold ${
+                  activeLog === "shipment"
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-slate-500"
+                }`}
+              >
                 Shipments
               </button>
             </div>
@@ -248,55 +345,61 @@ function Inventory() {
             <thead className="bg-slate-100">
               <tr>
                 <th className="px-6 py-4 text-sm uppercase text-slate-500">
+                  Type
+                </th>
+                <th className="px-6 py-4 text-sm uppercase text-slate-500">
                   Product
                 </th>
                 <th className="px-6 py-4 text-sm uppercase text-slate-500">
                   SKU
                 </th>
                 <th className="px-6 py-4 text-sm uppercase text-slate-500">
-                  Current Stock
+                  Quantity
                 </th>
                 <th className="px-6 py-4 text-sm uppercase text-slate-500">
-                  Status
+                  User
+                </th>
+                <th className="px-6 py-4 text-sm uppercase text-slate-500">
+                  Time
                 </th>
               </tr>
             </thead>
 
             <tbody>
-              {products.map((product) => {
-                const stock = Number(product.stock_quantity);
+              {filteredLogs.map((log) => (
+                <tr key={log.id} className="border-b hover:bg-slate-50">
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        log.type === "restock"
+                          ? "bg-cyan-100 text-cyan-700"
+                          : "bg-indigo-100 text-indigo-700"
+                      }`}
+                    >
+                      {log.type === "restock" ? "Restock" : "Shipment"}
+                    </span>
+                  </td>
 
-                let status = "In Stock";
-                let statusClass = "bg-emerald-100 text-emerald-700";
+                  <td className="px-6 py-4 font-semibold">
+                    {log.productName}
+                  </td>
 
-                if (stock === 0) {
-                  status = "Out of Stock";
-                  statusClass = "bg-red-100 text-red-700";
-                } else if (stock <= 10) {
-                  status = "Low Stock";
-                  statusClass = "bg-amber-100 text-amber-700";
-                }
+                  <td className="px-6 py-4 text-slate-500">{log.sku}</td>
 
-                return (
-                  <tr key={product.id} className="border-b hover:bg-slate-50">
-                    <td className="px-6 py-4 font-semibold">{product.name}</td>
-                    <td className="px-6 py-4 text-slate-500">{product.sku}</td>
-                    <td className="px-6 py-4">{product.stock_quantity}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${statusClass}`}
-                      >
-                        {status}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                  <td className="px-6 py-4">{log.quantity}</td>
+
+                  <td className="px-6 py-4 font-medium text-slate-700">
+                    {log.user || "Unknown User"}
+                  </td>
+
+                  <td className="px-6 py-4 text-slate-500">{log.time}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
-          {products.length === 0 && (
-            <p className="p-6 text-slate-500">No inventory data found.</p>
+          {filteredLogs.length === 0 && (
+            <p className="p-6 text-slate-500">No logs found.</p>
           )}
         </div>
 
@@ -306,29 +409,29 @@ function Inventory() {
           </h3>
 
           <div className="space-y-6">
-            <div>
-              <p className="font-semibold">Audit Completed</p>
-              <p className="text-sm text-slate-500">
-                Inventory data synced from database.
-              </p>
-            </div>
+            {logs.slice(0, 3).map((log) => (
+              <div key={log.id}>
+                <p className="font-semibold">
+                  {log.type === "restock"
+                    ? "Restock Completed"
+                    : "Shipment Completed"}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {log.productName} updated by {log.quantity} units by{" "}
+                  {log.user || "Unknown User"}.
+                </p>
+              </div>
+            ))}
 
-            <div>
-              <p className="font-semibold">Supplier Check</p>
-              <p className="text-sm text-slate-500">
-                Product stock levels reviewed.
-              </p>
-            </div>
-
-            <div>
-              <p className="font-semibold">Threshold Breach</p>
-              <p className="text-sm text-slate-500">
-                Low stock items detected.
-              </p>
-            </div>
+            {logs.length === 0 && (
+              <p className="text-sm text-slate-500">No recent activity yet.</p>
+            )}
           </div>
 
-          <button className="mt-8 text-indigo-600 font-semibold border rounded-lg w-full py-2">
+          <button
+            onClick={() => setActiveLog("all")}
+            className="mt-8 text-indigo-600 font-semibold border rounded-lg w-full py-2"
+          >
             View Full Logs
           </button>
         </div>

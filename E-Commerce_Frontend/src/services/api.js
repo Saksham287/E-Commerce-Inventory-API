@@ -32,7 +32,15 @@ export async function login(username, password) {
     body: JSON.stringify({ username, password }),
   });
 
-  return handleResponse(response);
+  const data = await handleResponse(response);
+
+  localStorage.setItem("username", username);
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+
+  return data;
 }
 
 export async function register(username, password, role) {

@@ -67,6 +67,21 @@ function Dashboard({ setPage }) {
     return total + Number(p.price || 0) * Number(p.stock_quantity || 0);
   }, 0);
 
+  const topProducts = [...products]
+    .sort((a, b) => Number(b.stock_quantity || 0) - Number(a.stock_quantity || 0))
+    .slice(0, 6);
+
+  const maxStock =
+    topProducts.length > 0
+      ? Math.max(...topProducts.map((p) => Number(p.stock_quantity || 0)))
+      : 0;
+
+  function getCategoryProductCount(categoryId) {
+    return products.filter(
+      (product) => String(product.category_id) === String(categoryId)
+    ).length;
+  }
+
   return (
     <div className="bg-[#faf8ff] min-h-screen">
       <header className="bg-white border-b px-8 py-4 flex justify-between items-center">
@@ -140,32 +155,62 @@ function Dashboard({ setPage }) {
             className="cursor-pointer col-span-2 bg-white rounded-xl border p-6 shadow-sm hover:shadow-lg transition"
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold">Product Inventory Trends</h3>
+              <div>
+                <h3 className="text-2xl font-bold">Stock Levels by Product</h3>
+                <p className="text-sm text-slate-500">
+                  Top products based on current stock quantity
+                </p>
+              </div>
 
-              <select
-                onClick={(e) => e.stopPropagation()}
-                className="border rounded-lg px-3 py-2"
-              >
-                <option>Last 30 Days</option>
-                <option>Last 90 Days</option>
-              </select>
+              <span className="text-sm font-semibold text-indigo-600">
+                Stock Quantity
+              </span>
             </div>
 
-            <div className="h-80 bg-slate-50 rounded-lg flex items-center justify-center">
-              {products.length > 0 ? (
-                <svg viewBox="0 0 600 250" className="w-full h-full">
-                  <path
-                    d="M20 180 C120 150, 180 50, 300 90 S450 200, 580 40"
-                    fill="none"
-                    stroke="#4f46e5"
-                    strokeWidth="4"
-                  />
-                  <circle cx="420" cy="95" r="5" fill="#4f46e5" />
-                </svg>
+            <div className="h-80 bg-slate-50 rounded-lg p-6">
+              {topProducts.length > 0 ? (
+                <div className="h-full flex items-end gap-6 border-l border-b border-slate-300 px-4 pb-8 relative">
+                  <span className="absolute -left-4 top-2 text-xs text-slate-500">
+                    Qty
+                  </span>
+
+                  {topProducts.map((product) => {
+                    const stock = Number(product.stock_quantity || 0);
+                    const barHeight =
+                      maxStock > 0 ? Math.max((stock / maxStock) * 100, 8) : 8;
+
+                    return (
+                      <div
+                        key={product.id}
+                        className="flex-1 flex flex-col items-center justify-end h-full"
+                      >
+                        <p className="text-sm font-bold text-slate-700 mb-2">
+                          {stock}
+                        </p>
+
+                        <div
+                          className="w-full bg-indigo-600 rounded-t-lg hover:bg-indigo-700 transition"
+                          style={{ height: `${barHeight}%` }}
+                          title={`${product.name}: ${stock} units`}
+                        ></div>
+
+                        <p className="text-xs text-slate-600 mt-3 text-center truncate w-full">
+                          {product.name}
+                        </p>
+                      </div>
+                    );
+                  })}
+
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-slate-500">
+                    Products
+                  </span>
+                </div>
               ) : (
-                <span className="text-slate-400">
-                  No inventory trend data yet
-                </span>
+                <div className="h-full flex items-center justify-center">
+                  <span className="text-slate-400">
+                    No inventory data yet
+                  </span>
+                </div>
               )}
             </div>
           </div>
@@ -174,25 +219,39 @@ function Dashboard({ setPage }) {
             onClick={() => setPage("categories")}
             className="cursor-pointer bg-white rounded-xl border p-6 shadow-sm hover:shadow-lg transition"
           >
-            <h3 className="text-2xl font-bold mb-8">Category Distribution</h3>
+            <h3 className="text-2xl font-bold mb-2">Category Distribution</h3>
+            <p className="text-sm text-slate-500 mb-8">
+              Products grouped by category
+            </p>
 
             <div className="space-y-6">
               {categories.length > 0 ? (
-                categories.slice(0, 4).map((category) => (
-                  <div
-                    key={category.id}
-                    className="hover:text-indigo-600 transition"
-                  >
-                    <div className="flex justify-between">
-                      <span>{category.name}</span>
-                      <span> </span>
-                    </div>
+                categories.slice(0, 4).map((category) => {
+                  const count = getCategoryProductCount(category.id);
+                  const percentage =
+                    totalProducts > 0 ? (count / totalProducts) * 100 : 0;
 
-                    <div className="w-full bg-slate-200 h-2 rounded-full mt-2">
-                      <div className="bg-indigo-600 h-2 rounded-full w-[0%]"></div>
+                  return (
+                    <div
+                      key={category.id}
+                      className="hover:text-indigo-600 transition"
+                    >
+                      <div className="flex justify-between text-sm">
+                        <span className="font-semibold">{category.name}</span>
+                        <span>
+                          {count} products ({percentage.toFixed(0)}%)
+                        </span>
+                      </div>
+
+                      <div className="w-full bg-slate-200 h-3 rounded-full mt-2">
+                        <div
+                          className="bg-indigo-600 h-3 rounded-full"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-slate-500">No categories yet</p>
               )}
@@ -246,9 +305,7 @@ function Dashboard({ setPage }) {
             onClick={() => setPage("inventory")}
             className="cursor-pointer bg-indigo-700 text-white rounded-xl p-6 shadow-sm hover:shadow-lg hover:scale-[1.02] transition"
           >
-            <h3 className="text-2xl font-bold mb-4">
-              Inventory Forecasting
-            </h3>
+            <h3 className="text-2xl font-bold mb-4">Inventory Forecasting</h3>
             <p className="text-indigo-100">
               Forecasting insights will appear when enough inventory history is
               available.
