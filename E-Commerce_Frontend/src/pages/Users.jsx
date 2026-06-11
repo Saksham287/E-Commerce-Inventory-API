@@ -14,6 +14,9 @@ function Users() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const currentRole = localStorage.getItem("role");
+  const isAdmin = currentRole === "Admin";
+
   async function loadUsers() {
     try {
       setError("");
@@ -31,30 +34,45 @@ function Users() {
   }, []);
 
   function handleEdit(user) {
+    if (!isAdmin) {
+      setError("Admin access required");
+      return;
+    }
+
     setEditingUser(user);
     setShowAddModal(true);
   }
 
-    async function handleInactive(id, newStatus) {
-        try {
-            setError("");
-
-            await updateUserStatus(id, newStatus);
-
-            setMessage(`User marked as ${newStatus}`);
-
-            await loadUsers();
-
-            setTimeout(() => {
-                setMessage("");
-            }, 3000);
-        } catch (err) {
-            console.error(err);
-            setError(err.message || "Failed to update user status");
-        }
+  async function handleInactive(id, newStatus) {
+    if (!isAdmin) {
+      setError("Admin access required");
+      return;
     }
 
+    try {
+      setError("");
+
+      await updateUserStatus(id, newStatus);
+
+      setMessage(`User marked as ${newStatus}`);
+
+      await loadUsers();
+
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to update user status");
+    }
+  }
+
   async function handleSaveUser(data) {
+    if (!isAdmin) {
+      setError("Admin access required");
+      return;
+    }
+
     try {
       setError("");
 
@@ -72,6 +90,7 @@ function Users() {
 
       setShowAddModal(false);
       setEditingUser(null);
+
       await loadUsers();
 
       setTimeout(() => {
@@ -90,21 +109,31 @@ function Users() {
           <h2 className="text-4xl font-bold text-slate-900 mb-2">
             User Management
           </h2>
+
           <p className="text-slate-500">
             Control access levels and manage team member permissions.
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setEditingUser(null);
-            setShowAddModal(true);
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm"
-        >
-          + Add New User
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              setEditingUser(null);
+              setShowAddModal(true);
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm"
+          >
+            + Add New User
+          </button>
+        )}
       </div>
+
+      {!isAdmin && (
+        <div className="mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-5 py-4 rounded-xl">
+          You have view-only access. Only Admins can add, edit, activate or
+          deactivate users.
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 bg-red-100 border border-red-300 text-red-700 px-5 py-4 rounded-xl">
@@ -118,6 +147,7 @@ function Users() {
             <label className="block text-sm text-slate-500 mb-2 uppercase">
               Role Filter
             </label>
+
             <select className="w-full border rounded-lg px-4 py-3">
               <option>All Roles</option>
               <option>Admin</option>
@@ -129,6 +159,7 @@ function Users() {
             <label className="block text-sm text-slate-500 mb-2 uppercase">
               Status Filter
             </label>
+
             <select className="w-full border rounded-lg px-4 py-3">
               <option>All Statuses</option>
               <option>Active</option>
@@ -145,10 +176,14 @@ function Users() {
           <p className="text-sm uppercase tracking-widest text-indigo-100 mb-2">
             Total Active Users
           </p>
+
           <h3 className="text-5xl font-bold">
             {users.filter((user) => user.status !== "Inactive").length}
           </h3>
-          <p className="mt-4 text-indigo-100">Users from MySQL database</p>
+
+          <p className="mt-4 text-indigo-100">
+            Users from MySQL database
+          </p>
         </div>
       </div>
 
@@ -160,15 +195,20 @@ function Users() {
                 <th className="px-6 py-4 text-sm text-slate-500 uppercase">
                   User Details
                 </th>
+
                 <th className="px-6 py-4 text-sm text-slate-500 uppercase text-center">
                   Role
                 </th>
+
                 <th className="px-6 py-4 text-sm text-slate-500 uppercase text-center">
                   Status
                 </th>
-                <th className="px-6 py-4 text-sm text-slate-500 uppercase text-right">
-                  Actions
-                </th>
+
+                {isAdmin && (
+                  <th className="px-6 py-4 text-sm text-slate-500 uppercase text-right">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
 
@@ -190,6 +230,7 @@ function Users() {
                           <p className="font-semibold text-slate-900">
                             {user.username}
                           </p>
+
                           <p className="text-sm text-slate-500">
                             user_id: {user.id}
                           </p>
@@ -221,30 +262,32 @@ function Users() {
                       </span>
                     </td>
 
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleEdit(user)}
-                        className="text-indigo-600 mr-4 font-medium"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() =>
-                            handleInactive(
-                                user.id,
-                                isInactive ? "Active" : "Inactive"
-                            )
-                        }
-                        className={`font-medium ${
-                            isInactive
-                                ? "text-emerald-600"
-                                : "text-orange-600"
-                            }`}
+                    {isAdmin && (
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleEdit(user)}
+                          className="text-indigo-600 mr-4 font-medium"
                         >
-                            {isInactive ? "Activate" : "Deactivate"}
+                          Edit
                         </button>
-                    </td>
+
+                        <button
+                          onClick={() =>
+                            handleInactive(
+                              user.id,
+                              isInactive ? "Active" : "Inactive"
+                            )
+                          }
+                          className={`font-medium ${
+                            isInactive
+                              ? "text-emerald-600"
+                              : "text-orange-600"
+                          }`}
+                        >
+                          {isInactive ? "Activate" : "Deactivate"}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -252,7 +295,7 @@ function Users() {
               {users.length === 0 && (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan={isAdmin ? 4 : 3}
                     className="px-6 py-8 text-center text-slate-500"
                   >
                     No users found.
@@ -270,7 +313,7 @@ function Users() {
         </div>
       </div>
 
-      {showAddModal && (
+      {isAdmin && showAddModal && (
         <AddUserModal
           editingUser={editingUser}
           onClose={() => {

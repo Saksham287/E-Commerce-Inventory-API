@@ -23,6 +23,9 @@ function Categories({ setPage }) {
     description: "",
   });
 
+  const currentRole = localStorage.getItem("role");
+  const isAdmin = currentRole === "Admin";
+
   async function loadData() {
     const categoryData = await getCategories();
     const productData = await getProducts();
@@ -57,6 +60,8 @@ function Categories({ setPage }) {
   }
 
   function handleEdit(category) {
+    if (!isAdmin) return;
+
     setEditingCategory(category);
     setEditForm({
       name: category.name,
@@ -66,6 +71,11 @@ function Categories({ setPage }) {
   }
 
   async function handleUpdateCategory() {
+    if (!isAdmin) {
+      alert("Admin access required");
+      return;
+    }
+
     if (!editForm.name) {
       alert("Category name is required");
       return;
@@ -79,6 +89,11 @@ function Categories({ setPage }) {
   }
 
   async function handleDelete(category) {
+    if (!isAdmin) {
+      alert("Admin access required");
+      return;
+    }
+
     const confirmDelete = window.confirm(`Delete category "${category.name}"?`);
     if (!confirmDelete) return;
 
@@ -99,22 +114,31 @@ function Categories({ setPage }) {
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowAddProductModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold"
-          >
-            + Add Product
-          </button>
+        {isAdmin && (
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowAddProductModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold"
+            >
+              + Add Product
+            </button>
 
-          <button
-            onClick={() => setShowAddCategoryModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold"
-          >
-            + Add Category
-          </button>
-        </div>
+            <button
+              onClick={() => setShowAddCategoryModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold"
+            >
+              + Add Category
+            </button>
+          </div>
+        )}
       </section>
+
+      {!isAdmin && (
+        <div className="mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-5 py-4 rounded-xl">
+          You have view-only access. Only Admins can add, edit, or delete
+          categories and products.
+        </div>
+      )}
 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div
@@ -272,31 +296,46 @@ function Categories({ setPage }) {
                           View
                         </button>
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(category);
-                          }}
-                          className="block w-full text-left px-4 py-3 hover:bg-slate-100"
-                        >
-                          Edit
-                        </button>
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(category);
+                              }}
+                              className="block w-full text-left px-4 py-3 hover:bg-slate-100"
+                            >
+                              Edit
+                            </button>
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(category);
-                          }}
-                          className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
-                        >
-                          Delete
-                        </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(category);
+                              }}
+                              className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
                 </td>
               </tr>
             ))}
+
+            {filteredCategories.length === 0 && (
+              <tr>
+                <td
+                  colSpan="4"
+                  className="px-6 py-8 text-center text-slate-500"
+                >
+                  No categories found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
 
@@ -381,7 +420,7 @@ function Categories({ setPage }) {
         </div>
       )}
 
-      {editingCategory && (
+      {isAdmin && editingCategory && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-[500px] p-6">
             <h2 className="text-2xl font-bold mb-5">Edit Category</h2>
@@ -432,18 +471,28 @@ function Categories({ setPage }) {
         </div>
       )}
 
-      <AddProductModal
-        show={showAddProductModal}
-        categories={categories}
-        onClose={() => setShowAddProductModal(false)}
-        onProductAdded={loadData}
-      />
+      {isAdmin && (
+        <AddProductModal
+          show={showAddProductModal}
+          categories={categories}
+          onClose={() => setShowAddProductModal(false)}
+          onProductAdded={() => {
+            setShowAddProductModal(false);
+            loadData();
+          }}
+        />
+      )}
 
-      <AddCategoryModal
-        show={showAddCategoryModal}
-        onClose={() => setShowAddCategoryModal(false)}
-        onCategoryAdded={loadData}
-      />
+      {isAdmin && (
+        <AddCategoryModal
+          show={showAddCategoryModal}
+          onClose={() => setShowAddCategoryModal(false)}
+          onCategoryAdded={() => {
+            setShowAddCategoryModal(false);
+            loadData();
+          }}
+        />
+      )}
     </div>
   );
 }

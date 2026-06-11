@@ -16,22 +16,29 @@ def create_product():
     stock_quantity = data.get("stock_quantity")
     category_id = data.get("category_id")
 
-    if not all([name, sku, price, stock_quantity, category_id]):
-        return {"status": "error", "message": "All fields are required"}, 400
+    if not name or not sku or price is None or stock_quantity is None or not category_id:
+        return {
+            "status": "error",
+            "message": "All fields are required"
+        }, 400
 
     conn = get_connection()
     cursor = conn.cursor()
 
     try:
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO products
             (name, sku, price, stock_quantity, category_id)
             VALUES (%s, %s, %s, %s, %s)
-        """, (name, sku, price, stock_quantity, category_id))
+            """,
+            (name, sku, price, stock_quantity, category_id)
+        )
 
         conn.commit()
 
         return {
+            "status": "success",
             "message": "Product created successfully",
             "product_id": cursor.lastrowid
         }, 201
@@ -57,54 +64,59 @@ def get_products():
     conn = get_connection()
     cursor = conn.cursor()
 
-    query = """
-        SELECT * FROM products
-        WHERE is_active = TRUE
-    """
+    try:
+        query = """
+            SELECT *
+            FROM products
+            WHERE is_active = TRUE
+        """
 
-    values = []
+        values = []
 
-    if min_price:
-        query += " AND price >= %s"
-        values.append(min_price)
+        if min_price:
+            query += " AND price >= %s"
+            values.append(min_price)
 
-    if max_price:
-        query += " AND price <= %s"
-        values.append(max_price)
+        if max_price:
+            query += " AND price <= %s"
+            values.append(max_price)
 
-    if category_id:
-        query += " AND category_id = %s"
-        values.append(category_id)
+        if category_id:
+            query += " AND category_id = %s"
+            values.append(category_id)
 
-    if search:
-        query += " AND name LIKE %s"
-        values.append(f"%{search}%")
+        if search:
+            query += " AND (name LIKE %s OR sku LIKE %s)"
+            values.append(f"%{search}%")
+            values.append(f"%{search}%")
 
-    count_query = query.replace("SELECT *", "SELECT COUNT(*) as total")
+        count_query = query.replace("SELECT *", "SELECT COUNT(*) AS total")
 
-    cursor.execute(count_query, tuple(values))
-    total_records = cursor.fetchone()["total"]
+        cursor.execute(count_query, tuple(values))
+        total_records = cursor.fetchone()["total"]
 
-    query += " LIMIT %s OFFSET %s"
-    values.extend([limit, offset])
+        query += " ORDER BY id ASC LIMIT %s OFFSET %s"
+        values.extend([limit, offset])
 
-    cursor.execute(query, tuple(values))
-    products = cursor.fetchall()
+        cursor.execute(query, tuple(values))
+        products = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
+        total_pages = (total_records + limit - 1) // limit
 
-    total_pages = (total_records + limit - 1) // limit
+        return {
+            "status": "success",
+            "data": products,
+            "pagination": {
+                "total_records": total_records,
+                "current_page": page,
+                "total_pages": total_pages,
+                "limit": limit
+            }
+        }, 200
 
-    return {
-        "data": products,
-        "pagination": {
-            "total_records": total_records,
-            "current_page": page,
-            "total_pages": total_pages,
-            "limit": limit
-        }
-    }, 200
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @product_bp.route("/products/<int:product_id>", methods=["PUT"])
@@ -112,32 +124,52 @@ def get_products():
 def update_product(product_id):
     data = request.get_json()
 
+    name = data.get("name")
+    sku = data.get("sku")
+    price = data.get("price")
+    stock_quantity = data.get("stock_quantity")
+    category_id = data.get("category_id")
+
+    if not name or not sku or price is None or stock_quantity is None or not category_id:
+        return {
+            "status": "error",
+            "message": "All fields are required"
+        }, 400
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        UPDATE products
-        SET name=%s,
-            sku=%s,
-            price=%s,
-            stock_quantity=%s,
-            category_id=%s
-        WHERE id=%s
-    """, (
-        data.get("name"),
-        data.get("sku"),
-        data.get("price"),
-        data.get("stock_quantity"),
-        data.get("category_id"),
-        product_id
-    ))
+    try:
+        cursor.execute(
+            """
+            UPDATE products
+            SET name = %s,
+                sku = %s,
+                price = %s,
+                stock_quantity = %s,
+                category_id = %s
+            WHERE id = %s
+            """,
+            (
+                name,
+                sku,
+                price,
+                stock_quantity,
+                category_id,
+                product_id
+            )
+        )
 
-    conn.commit()
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        return {
+            "status": "success",
+            "message": "Product updated successfully"
+        }, 200
 
-    return {"message": "Product updated successfully"}, 200
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @product_bp.route("/products/<int:product_id>", methods=["DELETE"])
@@ -146,18 +178,26 @@ def delete_product(product_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        UPDATE products
-        SET is_active = FALSE
-        WHERE id = %s
-    """, (product_id,))
+    try:
+        cursor.execute(
+            """
+            UPDATE products
+            SET is_active = FALSE
+            WHERE id = %s
+            """,
+            (product_id,)
+        )
 
-    conn.commit()
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        return {
+            "status": "success",
+            "message": "Product deleted successfully"
+        }, 200
 
-    return {"message": "Product soft deleted successfully"}, 200
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @product_bp.route("/products/<int:product_id>/order", methods=["POST"])
@@ -166,21 +206,34 @@ def order_product(product_id):
     data = request.get_json()
     quantity = data.get("quantity")
 
-    if not quantity or quantity <= 0:
-        return {"status": "error", "message": "Quantity must be greater than 0"}, 400
+    if not quantity or int(quantity) <= 0:
+        return {
+            "status": "error",
+            "message": "Quantity must be greater than 0"
+        }, 400
+
+    quantity = int(quantity)
 
     conn = get_connection()
     cursor = conn.cursor()
 
     try:
         cursor.execute(
-            "SELECT * FROM products WHERE id = %s AND is_active = TRUE",
+            """
+            SELECT *
+            FROM products
+            WHERE id = %s AND is_active = TRUE
+            """,
             (product_id,)
         )
+
         product = cursor.fetchone()
 
         if not product:
-            return {"status": "error", "message": "Product not found"}, 404
+            return {
+                "status": "error",
+                "message": "Product not found"
+            }, 404
 
         if quantity > product["stock_quantity"]:
             return {
@@ -191,13 +244,18 @@ def order_product(product_id):
         new_stock = product["stock_quantity"] - quantity
 
         cursor.execute(
-            "UPDATE products SET stock_quantity = %s WHERE id = %s",
+            """
+            UPDATE products
+            SET stock_quantity = %s
+            WHERE id = %s
+            """,
             (new_stock, product_id)
         )
 
         conn.commit()
 
         return {
+            "status": "success",
             "message": "Order processed successfully",
             "product_id": product_id,
             "quantity_ordered": quantity,
@@ -215,32 +273,50 @@ def restock_product(product_id):
     data = request.get_json()
     quantity = data.get("quantity")
 
-    if not quantity or quantity <= 0:
-        return {"status": "error", "message": "Quantity must be greater than 0"}, 400
+    if not quantity or int(quantity) <= 0:
+        return {
+            "status": "error",
+            "message": "Quantity must be greater than 0"
+        }, 400
+
+    quantity = int(quantity)
 
     conn = get_connection()
     cursor = conn.cursor()
 
     try:
         cursor.execute(
-            "SELECT * FROM products WHERE id = %s AND is_active = TRUE",
+            """
+            SELECT *
+            FROM products
+            WHERE id = %s AND is_active = TRUE
+            """,
             (product_id,)
         )
+
         product = cursor.fetchone()
 
         if not product:
-            return {"status": "error", "message": "Product not found"}, 404
+            return {
+                "status": "error",
+                "message": "Product not found"
+            }, 404
 
         new_stock = product["stock_quantity"] + quantity
 
         cursor.execute(
-            "UPDATE products SET stock_quantity = %s WHERE id = %s",
+            """
+            UPDATE products
+            SET stock_quantity = %s
+            WHERE id = %s
+            """,
             (new_stock, product_id)
         )
 
         conn.commit()
 
         return {
+            "status": "success",
             "message": "Product restocked successfully",
             "product_id": product_id,
             "quantity_added": quantity,

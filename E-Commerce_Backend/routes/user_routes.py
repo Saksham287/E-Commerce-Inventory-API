@@ -54,6 +54,7 @@ def has_status_column():
 
 
 @user_bp.route("/users/register", methods=["POST"])
+@admin_required
 def register():
     data = request.get_json()
 
@@ -176,6 +177,7 @@ def login():
         "status": "success",
         "message": "Login successful",
         "token": access_token,
+        "access_token": access_token,
         "user": {
             "id": user["id"],
             "username": user["username"],

@@ -14,22 +14,33 @@ def create_category():
     description = data.get("description")
 
     if not name:
-        return {"status": "error", "message": "Category name is required"}, 400
+        return {
+            "status": "error",
+            "message": "Category name is required"
+        }, 400
 
     conn = get_connection()
     cursor = conn.cursor()
 
     try:
         cursor.execute(
-            "INSERT INTO categories (name, description) VALUES (%s, %s)",
-            (name, description),
+            """
+            INSERT INTO categories (name, description)
+            VALUES (%s, %s)
+            """,
+            (name, description)
         )
+
         conn.commit()
 
         return {
-            "id": cursor.lastrowid,
-            "name": name,
-            "description": description,
+            "status": "success",
+            "message": "Category created successfully",
+            "data": {
+                "id": cursor.lastrowid,
+                "name": name,
+                "description": description
+            }
         }, 201
 
     finally:
@@ -44,10 +55,20 @@ def get_categories():
     cursor = conn.cursor()
 
     try:
-        cursor.execute("SELECT * FROM categories")
+        cursor.execute(
+            """
+            SELECT *
+            FROM categories
+            ORDER BY id ASC
+            """
+        )
+
         categories = cursor.fetchall()
 
-        return {"data": categories}, 200
+        return {
+            "status": "success",
+            "data": categories
+        }, 200
 
     finally:
         cursor.close()
@@ -63,7 +84,10 @@ def update_category(id):
     description = data.get("description")
 
     if not name:
-        return {"status": "error", "message": "Category name is required"}, 400
+        return {
+            "status": "error",
+            "message": "Category name is required"
+        }, 400
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -76,17 +100,20 @@ def update_category(id):
                 description = %s
             WHERE id = %s
             """,
-            (name, description, id),
+            (name, description, id)
         )
 
         conn.commit()
 
         if cursor.rowcount == 0:
-            return {"status": "error", "message": "Category not found"}, 404
+            return {
+                "status": "error",
+                "message": "Category not found"
+            }, 404
 
         return {
             "status": "success",
-            "message": "Category updated successfully",
+            "message": "Category updated successfully"
         }, 200
 
     finally:
@@ -102,18 +129,24 @@ def delete_category(id):
 
     try:
         cursor.execute(
-            "DELETE FROM categories WHERE id = %s",
-            (id,),
+            """
+            DELETE FROM categories
+            WHERE id = %s
+            """,
+            (id,)
         )
 
         conn.commit()
 
         if cursor.rowcount == 0:
-            return {"status": "error", "message": "Category not found"}, 404
+            return {
+                "status": "error",
+                "message": "Category not found"
+            }, 404
 
         return {
             "status": "success",
-            "message": "Category deleted successfully",
+            "message": "Category deleted successfully"
         }, 200
 
     finally:

@@ -33,6 +33,9 @@ function Products() {
   const [page, setPage] = useState(1);
   const productsPerPage = 15;
 
+  const currentRole = localStorage.getItem("role");
+  const isAdmin = currentRole === "Admin";
+
   useEffect(() => {
     loadData();
   }, []);
@@ -90,6 +93,8 @@ function Products() {
   }
 
   function openEditModal(product) {
+    if (!isAdmin) return;
+
     setSelectedProduct(product);
     setEditForm({
       name: product.name || "",
@@ -116,6 +121,11 @@ function Products() {
   async function handleEditSubmit(e) {
     e.preventDefault();
 
+    if (!isAdmin) {
+      alert("Admin access required");
+      return;
+    }
+
     if (!selectedProduct) return;
 
     try {
@@ -129,6 +139,11 @@ function Products() {
   }
 
   async function handleDelete(productId) {
+    if (!isAdmin) {
+      alert("Admin access required");
+      return;
+    }
+
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this product?"
     );
@@ -200,13 +215,22 @@ function Products() {
           <p>Inventory › Products</p>
         </div>
 
-        <button
-          className="add-product-btn"
-          onClick={() => setShowAddModal(true)}
-        >
-          + Add Product
-        </button>
+        {isAdmin && (
+          <button
+            className="add-product-btn"
+            onClick={() => setShowAddModal(true)}
+          >
+            + Add Product
+          </button>
+        )}
       </div>
+
+      {!isAdmin && (
+        <div className="mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-5 py-4 rounded-xl">
+          You have view-only access. Only Admins can add, edit, or delete
+          products.
+        </div>
+      )}
 
       <div className="products-top">
         <div className="filters-card">
@@ -310,8 +334,8 @@ function Products() {
           <h3>Total Value</h3>
           <h2>
             {totalValue.toLocaleString("en-US", {
-            style: "currency",
-            currency: "USD",
+              style: "currency",
+              currency: "USD",
             })}
           </h2>
           <p>Products: {filteredProducts.length}</p>
@@ -329,7 +353,7 @@ function Products() {
               <th>Stock</th>
               <th>Category</th>
               <th>Status</th>
-              <th className="actions-head">Actions</th>
+              {isAdmin && <th className="actions-head">Actions</th>}
             </tr>
           </thead>
 
@@ -352,11 +376,16 @@ function Products() {
                     </td>
 
                     <td>{product.sku}</td>
-                    <td>{Number(product.price || 0).toLocaleString("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        })}</td>
+
+                    <td>
+                      {Number(product.price || 0).toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </td>
+
                     <td>{product.stock_quantity} units</td>
+
                     <td>{getCategoryName(product.category_id)}</td>
 
                     <td>
@@ -373,27 +402,29 @@ function Products() {
                       </span>
                     </td>
 
-                    <td className="actions">
-                      <button
-                        className="edit-btn"
-                        onClick={() => openEditModal(product)}
-                      >
-                        Edit
-                      </button>
+                    {isAdmin && (
+                      <td className="actions">
+                        <button
+                          className="edit-btn"
+                          onClick={() => openEditModal(product)}
+                        >
+                          Edit
+                        </button>
 
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
+                        <button
+                          className="delete-btn"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan="8" className="empty-row">
+                <td colSpan={isAdmin ? 8 : 7} className="empty-row">
                   No products found
                 </td>
               </tr>
@@ -404,20 +435,15 @@ function Products() {
         <div className="table-footer">
           <p>
             {filteredProducts.length === 0
-            ? "Showing 0 of 0 products"
-            : `Showing ${
-              (page - 1) * productsPerPage + 1
-            }-${Math.min(
-              page * productsPerPage,
-              filteredProducts.length
-            )} of ${filteredProducts.length} products`}
+              ? "Showing 0 of 0 products"
+              : `Showing ${(page - 1) * productsPerPage + 1}-${Math.min(
+                  page * productsPerPage,
+                  filteredProducts.length
+                )} of ${filteredProducts.length} products`}
           </p>
 
           <div className="pagination">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
+            <button disabled={page === 1} onClick={() => setPage(page - 1)}>
               Previous
             </button>
 
@@ -433,9 +459,9 @@ function Products() {
             </button>
           </div>
         </div>
-      </div>  
+      </div>
 
-      {showAddModal && (
+      {isAdmin && showAddModal && (
         <AddProductModal
           show={showAddModal}
           categories={categories}
@@ -447,7 +473,7 @@ function Products() {
         />
       )}
 
-      {showEditModal && selectedProduct && (
+      {isAdmin && showEditModal && selectedProduct && (
         <div className="modal-overlay">
           <div className="modal-box">
             <h2>Edit Product</h2>
