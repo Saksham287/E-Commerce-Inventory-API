@@ -17,6 +17,9 @@ function Users() {
   const currentRole = localStorage.getItem("role");
   const isAdmin = currentRole === "Admin";
 
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUserId = Number(currentUser.id);
+
   async function loadUsers() {
     try {
       setError("");
@@ -33,9 +36,13 @@ function Users() {
     loadUsers();
   }, []);
 
+  function canEditUser(user) {
+    return isAdmin || Number(user.id) === currentUserId;
+  }
+
   function handleEdit(user) {
-    if (!isAdmin) {
-      setError("Admin access required");
+    if (!canEditUser(user)) {
+      setError("You can only edit your own profile");
       return;
     }
 
@@ -51,11 +58,8 @@ function Users() {
 
     try {
       setError("");
-
       await updateUserStatus(id, newStatus);
-
       setMessage(`User marked as ${newStatus}`);
-
       await loadUsers();
 
       setTimeout(() => {
@@ -68,23 +72,23 @@ function Users() {
   }
 
   async function handleSaveUser(data) {
-    if (!isAdmin) {
-      setError("Admin access required");
-      return;
-    }
-
     try {
       setError("");
 
       if (editingUser) {
         await updateUser(editingUser.id, {
           username: data.username,
-          role: data.role,
+          role: isAdmin ? data.role : editingUser.role,
           password: data.password,
         });
 
         setMessage("User updated successfully");
       } else {
+        if (!isAdmin) {
+          setError("Admin access required");
+          return;
+        }
+
         await register(data.username, data.password, data.role);
         setMessage("User added successfully");
       }
@@ -128,13 +132,6 @@ function Users() {
           </button>
         )}
       </div>
-
-      {!isAdmin && (
-        <div className="mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-5 py-4 rounded-xl">
-          You have view-only access. Only Admins can add, edit, activate or
-          deactivate users.
-        </div>
-      )}
 
       {error && (
         <div className="mb-6 bg-red-100 border border-red-300 text-red-700 px-5 py-4 rounded-xl">
@@ -205,17 +202,16 @@ function Users() {
                   Status
                 </th>
 
-                {isAdmin && (
-                  <th className="px-6 py-4 text-sm text-slate-500 uppercase text-right">
-                    Actions
-                  </th>
-                )}
+                <th className="px-6 py-4 text-sm text-slate-500 uppercase text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {users.map((user) => {
                 const isInactive = user.status === "Inactive";
+                const editable = canEditUser(user);
 
                 return (
                   <tr key={user.id} className="border-b hover:bg-slate-50">
@@ -263,15 +259,17 @@ function Users() {
                       </span>
                     </td>
 
-                    {isAdmin && (
-                      <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right">
+                      {editable && (
                         <button
                           onClick={() => handleEdit(user)}
                           className="text-indigo-600 mr-4 font-medium"
                         >
                           Edit
                         </button>
+                      )}
 
+                      {isAdmin && (
                         <button
                           onClick={() =>
                             handleInactive(
@@ -287,8 +285,8 @@ function Users() {
                         >
                           {isInactive ? "Activate" : "Deactivate"}
                         </button>
-                      </td>
-                    )}
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -296,7 +294,7 @@ function Users() {
               {users.length === 0 && (
                 <tr>
                   <td
-                    colSpan={isAdmin ? 4 : 3}
+                    colSpan="4"
                     className="px-6 py-8 text-center text-slate-500"
                   >
                     No users found.
@@ -314,9 +312,10 @@ function Users() {
         </div>
       </div>
 
-      {isAdmin && showAddModal && (
+      {showAddModal && (
         <AddUserModal
           editingUser={editingUser}
+          isAdmin={isAdmin}
           onClose={() => {
             setShowAddModal(false);
             setEditingUser(null);
