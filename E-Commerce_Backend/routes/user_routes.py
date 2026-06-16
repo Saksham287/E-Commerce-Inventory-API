@@ -1,7 +1,8 @@
 from flask import Blueprint, request
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from flask_jwt_extended import create_access_token, get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
+from utils.auth import admin_required
 import pymysql
 import os
 
@@ -18,26 +19,6 @@ def get_connection():
         database=os.getenv("DB_NAME") or "",
         cursorclass=pymysql.cursors.DictCursor
     )
-
-
-def admin_required(func):
-    from functools import wraps
-
-    @wraps(func)
-    @jwt_required()
-    def wrapper(*args, **kwargs):
-        claims = get_jwt()
-        role = claims.get("role")
-
-        if role != "Admin":
-            return {
-                "status": "error",
-                "message": "Admin access required"
-            }, 403
-
-        return func(*args, **kwargs)
-
-    return wrapper
 
 
 def has_status_column():
@@ -234,6 +215,7 @@ def update_user(user_id):
 
     username = data.get("username")
     role = data.get("role")
+    password = data.get("password")
 
     if not username or not role:
         return {
@@ -251,17 +233,37 @@ def update_user(user_id):
     cursor = conn.cursor()
 
     try:
-        cursor.execute(
-            """
-            UPDATE users
-            SET username = %s,
-                role = %s
-            WHERE id = %s
-            """,
-            (username, role, user_id)
-        )
+        if password:
+            password_hash = generate_password_hash(password)
+
+            cursor.execute(
+                """
+                UPDATE users
+                SET username = %s,
+                    role = %s,
+                    password_hash = %s
+                WHERE id = %s
+                """,
+                (username, role, password_hash, user_id)
+            )
+        else:
+            cursor.execute(
+                """
+                UPDATE users
+                SET username = %s,
+                    role = %s
+                WHERE id = %s
+                """,
+                (username, role, user_id)
+            )
 
         conn.commit()
+
+        if cursor.rowcount == 0:
+            return {
+                "status": "error",
+                "message": "User not found"
+            }, 404
 
         return {
             "status": "success",
@@ -307,6 +309,12 @@ def update_user_status(user_id):
 
         conn.commit()
 
+        if cursor.rowcount == 0:
+            return {
+                "status": "error",
+                "message": "User not found"
+            }, 404
+
         return {
             "status": "success",
             "message": f"User marked as {status}"
@@ -330,6 +338,12 @@ def delete_user(user_id):
         )
 
         conn.commit()
+
+        if cursor.rowcount == 0:
+            return {
+                "status": "error",
+                "message": "User not found"
+            }, 404
 
         return {
             "status": "success",

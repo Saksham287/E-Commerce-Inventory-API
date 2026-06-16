@@ -80,6 +80,7 @@ function Users() {
         await updateUser(editingUser.id, {
           username: data.username,
           role: data.role,
+          password: data.password,
         });
 
         setMessage("User updated successfully");

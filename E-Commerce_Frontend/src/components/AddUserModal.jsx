@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
-function AddUserModal({ onSave, onClose, editingUser }) {
-  const [form, setForm] = useState({
+function AddUserModal({ editingUser, onClose, onSave }) {
+  const [userForm, setUserForm] = useState({
     username: "",
     password: "",
     role: "Staff",
@@ -9,70 +9,116 @@ function AddUserModal({ onSave, onClose, editingUser }) {
 
   useEffect(() => {
     if (editingUser) {
-      setForm({
-        username: editingUser.username,
+      setUserForm({
+        username: editingUser.username || "",
         password: "",
-        role: editingUser.role,
+        role: editingUser.role || "Staff",
+      });
+    } else {
+      setUserForm({
+        username: "",
+        password: "",
+        role: "Staff",
       });
     }
   }, [editingUser]);
 
-  function handleSave() {
-    if (!form.username || (!editingUser && !form.password)) {
-      alert("Please fill all required fields");
+  function handleChange(e) {
+    const { name, value } = e.target;
+
+    setUserForm({
+      ...userForm,
+      [name]: value,
+    });
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!userForm.username || !userForm.role) {
+      alert("Username and role are required");
       return;
     }
 
-    onSave(form);
+    if (!editingUser && !userForm.password) {
+      alert("Password is required for new users");
+      return;
+    }
+
+    onSave(userForm);
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-        <h2 className="text-2xl font-bold mb-6">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+        <h2 className="text-2xl font-bold text-slate-900 mb-5">
           {editingUser ? "Edit User" : "Add New User"}
         </h2>
 
-        <div className="space-y-4">
-          <input
-            className="w-full border rounded-lg px-4 py-3"
-            placeholder="Username"
-            value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
-          />
-
-          {!editingUser && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Username
+            </label>
             <input
-              type="password"
+              name="username"
+              value={userForm.username}
+              onChange={handleChange}
               className="w-full border rounded-lg px-4 py-3"
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="Enter username"
             />
-          )}
+          </div>
 
-          <select
-            className="w-full border rounded-lg px-4 py-3"
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-          >
-            <option>Admin</option>
-            <option>Staff</option>
-          </select>
-        </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              {editingUser ? "New Password (optional)" : "Password"}
+            </label>
+            <input
+              name="password"
+              type="password"
+              value={userForm.password}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-3"
+              placeholder={
+                editingUser
+                  ? "Leave blank to keep current password"
+                  : "Enter password"
+              }
+            />
+          </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <button onClick={onClose} className="border px-5 py-2 rounded-lg">
-            Cancel
-          </button>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Role
+            </label>
+            <select
+              name="role"
+              value={userForm.role}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-3"
+            >
+              <option value="Admin">Admin</option>
+              <option value="Staff">Staff</option>
+            </select>
+          </div>
 
-          <button
-            onClick={handleSave}
-            className="bg-indigo-600 text-white px-5 py-2 rounded-lg"
-          >
-            {editingUser ? "Update User" : "Save User"}
-          </button>
-        </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="border px-5 py-2 rounded-lg font-semibold"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700"
+            >
+              {editingUser ? "Update User" : "Create User"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
