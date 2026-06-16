@@ -14,6 +14,29 @@ function Dashboard({ setPage }) {
     category_id: "",
   });
 
+  function getUserRole() {
+    const role = localStorage.getItem("role");
+
+    if (role) {
+      return role;
+    }
+
+    const user = localStorage.getItem("user");
+
+    if (user) {
+      try {
+        return JSON.parse(user).role;
+      } catch {
+        return "";
+      }
+    }
+
+    return "";
+  }
+
+  const userRole = getUserRole();
+  const isAdmin = userRole === "Admin";
+
   async function loadData() {
     const productData = await getProducts();
     const categoryData = await getCategories();
@@ -27,6 +50,11 @@ function Dashboard({ setPage }) {
   }, []);
 
   async function handleQuickAdd() {
+    if (!isAdmin) {
+      alert("Only admin can add products");
+      return;
+    }
+
     if (
       !productForm.name ||
       !productForm.sku ||
@@ -94,12 +122,14 @@ function Dashboard({ setPage }) {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddProduct(true)}
-          className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 cursor-pointer"
-        >
-          + Add New Product
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setShowAddProduct(true)}
+            className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 cursor-pointer"
+          >
+            + Add New Product
+          </button>
+        )}
       </header>
 
       <div className="p-8">
@@ -207,9 +237,7 @@ function Dashboard({ setPage }) {
                 </div>
               ) : (
                 <div className="h-full flex items-center justify-center">
-                  <span className="text-slate-400">
-                    No inventory data yet
-                  </span>
+                  <span className="text-slate-400">No inventory data yet</span>
                 </div>
               )}
             </div>
@@ -324,7 +352,7 @@ function Dashboard({ setPage }) {
         </div>
       </div>
 
-      {showAddProduct && (
+      {isAdmin && showAddProduct && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl w-[600px] p-8">
             <div className="flex justify-between items-center mb-6">

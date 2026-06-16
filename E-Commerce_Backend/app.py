@@ -1,13 +1,13 @@
 from flask import Flask
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 import os
 
 from routes.user_routes import user_bp
 from routes.category_routes import category_bp
 from routes.product_routes import product_bp
-
-from flask_cors import CORS
+from routes.warehouse_routes import warehouse_bp
 
 load_dotenv()
 
@@ -19,13 +19,19 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
 jwt = JWTManager(app)
 
+# Register Blueprints
 app.register_blueprint(user_bp)
 app.register_blueprint(category_bp)
 app.register_blueprint(product_bp)
+app.register_blueprint(warehouse_bp)
+
 
 @app.route("/")
 def home():
-    return {"message": "E-Commerce Inventory API is running"}
+    return {
+        "message": "E-Commerce Inventory API is running"
+    }
+
 
 @app.errorhandler(400)
 def bad_request(error):

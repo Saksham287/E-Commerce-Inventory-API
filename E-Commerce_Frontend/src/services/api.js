@@ -51,11 +51,21 @@ export async function login(username, password) {
   return data;
 }
 
-export async function register(username, password, role) {
+export async function register(
+  username,
+  password,
+  role,
+  warehouse_id = null
+) {
   const response = await fetch(`${API_BASE_URL}/users/register`, {
     method: "POST",
     headers: getHeaders(),
-    body: JSON.stringify({ username, password, role }),
+    body: JSON.stringify({
+      username,
+      password,
+      role,
+      warehouse_id,
+    }),
   });
 
   return handleResponse(response);
@@ -113,21 +123,27 @@ export async function deleteProduct(productId) {
 }
 
 export async function orderProduct(productId, quantity) {
-  const response = await fetch(`${API_BASE_URL}/products/${productId}/order`, {
-    method: "POST",
-    headers: getHeaders(),
-    body: JSON.stringify({ quantity: Number(quantity) }),
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/products/${productId}/order`,
+    {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ quantity: Number(quantity) }),
+    }
+  );
 
   return handleResponse(response);
 }
 
 export async function restockProduct(productId, quantity) {
-  const response = await fetch(`${API_BASE_URL}/products/${productId}/restock`, {
-    method: "POST",
-    headers: getHeaders(),
-    body: JSON.stringify({ quantity: Number(quantity) }),
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/products/${productId}/restock`,
+    {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ quantity: Number(quantity) }),
+    }
+  );
 
   return handleResponse(response);
 }
@@ -166,6 +182,17 @@ export async function updateCategory(categoryId, categoryData) {
 export async function deleteCategory(categoryId) {
   const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
     method: "DELETE",
+    headers: getHeaders(),
+  });
+
+  return handleResponse(response);
+}
+
+/* WAREHOUSES */
+
+export async function getWarehouses() {
+  const response = await fetch(`${API_BASE_URL}/warehouses`, {
+    method: "GET",
     headers: getHeaders(),
   });
 

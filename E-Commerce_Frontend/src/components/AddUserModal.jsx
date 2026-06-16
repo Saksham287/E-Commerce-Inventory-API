@@ -1,11 +1,28 @@
 import React, { useEffect, useState } from "react";
+import { getWarehouses } from "../services/api";
 
-function AddUserModal({ editingUser, onClose, onSave }) {
+function AddUserModal({ editingUser, isAdmin, onClose, onSave }) {
+  const [warehouses, setWarehouses] = useState([]);
+
   const [userForm, setUserForm] = useState({
     username: "",
     password: "",
     role: "Staff",
+    warehouse_id: "",
   });
+
+  useEffect(() => {
+    async function loadWarehouses() {
+      try {
+        const data = await getWarehouses();
+        setWarehouses(data.data || []);
+      } catch (err) {
+        console.error("Failed to load warehouses", err);
+      }
+    }
+
+    loadWarehouses();
+  }, []);
 
   useEffect(() => {
     if (editingUser) {
@@ -13,12 +30,14 @@ function AddUserModal({ editingUser, onClose, onSave }) {
         username: editingUser.username || "",
         password: "",
         role: editingUser.role || "Staff",
+        warehouse_id: editingUser.warehouse_id || "",
       });
     } else {
       setUserForm({
         username: "",
         password: "",
         role: "Staff",
+        warehouse_id: "",
       });
     }
   }, [editingUser]);
@@ -26,10 +45,11 @@ function AddUserModal({ editingUser, onClose, onSave }) {
   function handleChange(e) {
     const { name, value } = e.target;
 
-    setUserForm({
-      ...userForm,
+    setUserForm((prev) => ({
+      ...prev,
       [name]: value,
-    });
+      warehouse_id: name === "role" && value === "Admin" ? "" : prev.warehouse_id,
+    }));
   }
 
   function handleSubmit(e) {
@@ -45,7 +65,16 @@ function AddUserModal({ editingUser, onClose, onSave }) {
       return;
     }
 
-    onSave(userForm);
+    if (isAdmin && userForm.role === "Staff" && !userForm.warehouse_id) {
+      alert("Please assign a warehouse to this staff user");
+      return;
+    }
+
+    onSave({
+      ...userForm,
+      warehouse_id:
+        userForm.role === "Admin" ? null : Number(userForm.warehouse_id),
+    });
   }
 
   return (
@@ -87,20 +116,56 @@ function AddUserModal({ editingUser, onClose, onSave }) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Role
-            </label>
-            <select
-              name="role"
-              value={userForm.role}
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            >
-              <option value="Admin">Admin</option>
-              <option value="Staff">Staff</option>
-            </select>
-          </div>
+          {isAdmin ? (
+            <>
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Role
+                </label>
+                <select
+                  name="role"
+                  value={userForm.role}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg px-4 py-3"
+                >
+                  <option value="Admin">Admin</option>
+                  <option value="Staff">Staff</option>
+                </select>
+              </div>
+
+              {userForm.role === "Staff" && (
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Assigned Warehouse
+                  </label>
+                  <select
+                    name="warehouse_id"
+                    value={userForm.warehouse_id}
+                    onChange={handleChange}
+                    className="w-full border rounded-lg px-4 py-3"
+                  >
+                    <option value="">Select warehouse</option>
+                    {warehouses.map((warehouse) => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.warehouse_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          ) : (
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Role
+              </label>
+              <input
+                value={userForm.role}
+                disabled
+                className="w-full border rounded-lg px-4 py-3 bg-slate-100 text-slate-500"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <button

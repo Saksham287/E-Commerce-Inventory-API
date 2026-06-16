@@ -225,13 +225,6 @@ function Products() {
         )}
       </div>
 
-      {!isAdmin && (
-        <div className="mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-5 py-4 rounded-xl">
-          You have view-only access. Only Admins can add, edit, or delete
-          products.
-        </div>
-      )}
-
       <div className="products-top">
         <div className="filters-card">
           <div className="filter-group">

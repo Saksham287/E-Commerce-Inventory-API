@@ -1,8 +1,20 @@
 from flask import Blueprint, request
+from flask_jwt_extended import get_jwt
 from utils.auth import admin_required, staff_required
 from routes.user_routes import get_connection
 
 product_bp = Blueprint("product_bp", __name__)
+
+
+def staff_can_manage_product(product):
+    claims = get_jwt()
+    role = claims.get("role")
+    user_warehouse_id = claims.get("warehouse_id")
+
+    if role == "Admin":
+        return True
+
+    return product["warehouse_id"] == user_warehouse_id
 
 
 @product_bp.route("/products", methods=["POST"])
@@ -28,11 +40,35 @@ def create_product():
     try:
         cursor.execute(
             """
-            INSERT INTO products
-            (name, sku, price, stock_quantity, category_id)
-            VALUES (%s, %s, %s, %s, %s)
+            SELECT id
+            FROM warehouses
+            WHERE category_id = %s
             """,
-            (name, sku, price, stock_quantity, category_id)
+            (category_id,)
+        )
+
+        warehouse = cursor.fetchone()
+
+        if not warehouse:
+            return {
+                "status": "error",
+                "message": "No warehouse found for this category"
+            }, 400
+
+        cursor.execute(
+            """
+            INSERT INTO products
+            (name, sku, price, stock_quantity, category_id, warehouse_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (
+                name,
+                sku,
+                price,
+                stock_quantity,
+                category_id,
+                warehouse["id"]
+            )
         )
 
         conn.commit()
@@ -66,36 +102,44 @@ def get_products():
 
     try:
         query = """
-            SELECT *
-            FROM products
-            WHERE is_active = TRUE
+            SELECT
+                p.*,
+                c.name AS category_name,
+                w.warehouse_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            LEFT JOIN warehouses w ON p.warehouse_id = w.id
+            WHERE p.is_active = TRUE
         """
 
         values = []
 
         if min_price:
-            query += " AND price >= %s"
+            query += " AND p.price >= %s"
             values.append(min_price)
 
         if max_price:
-            query += " AND price <= %s"
+            query += " AND p.price <= %s"
             values.append(max_price)
 
         if category_id:
-            query += " AND category_id = %s"
+            query += " AND p.category_id = %s"
             values.append(category_id)
 
         if search:
-            query += " AND (name LIKE %s OR sku LIKE %s)"
+            query += " AND (p.name LIKE %s OR p.sku LIKE %s)"
             values.append(f"%{search}%")
             values.append(f"%{search}%")
 
-        count_query = query.replace("SELECT *", "SELECT COUNT(*) AS total")
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM ({query}) AS filtered_products
+        """
 
         cursor.execute(count_query, tuple(values))
         total_records = cursor.fetchone()["total"]
 
-        query += " ORDER BY id ASC LIMIT %s OFFSET %s"
+        query += " ORDER BY p.id ASC LIMIT %s OFFSET %s"
         values.extend([limit, offset])
 
         cursor.execute(query, tuple(values))
@@ -142,12 +186,30 @@ def update_product(product_id):
     try:
         cursor.execute(
             """
+            SELECT id
+            FROM warehouses
+            WHERE category_id = %s
+            """,
+            (category_id,)
+        )
+
+        warehouse = cursor.fetchone()
+
+        if not warehouse:
+            return {
+                "status": "error",
+                "message": "No warehouse found for this category"
+            }, 400
+
+        cursor.execute(
+            """
             UPDATE products
             SET name = %s,
                 sku = %s,
                 price = %s,
                 stock_quantity = %s,
-                category_id = %s
+                category_id = %s,
+                warehouse_id = %s
             WHERE id = %s
             """,
             (
@@ -156,6 +218,7 @@ def update_product(product_id):
                 price,
                 stock_quantity,
                 category_id,
+                warehouse["id"],
                 product_id
             )
         )
@@ -235,6 +298,12 @@ def order_product(product_id):
                 "message": "Product not found"
             }, 404
 
+        if not staff_can_manage_product(product):
+            return {
+                "status": "error",
+                "message": "You can only order products in your assigned warehouse"
+            }, 403
+
         if quantity > product["stock_quantity"]:
             return {
                 "status": "error",
@@ -268,7 +337,7 @@ def order_product(product_id):
 
 
 @product_bp.route("/products/<int:product_id>/restock", methods=["POST"])
-@admin_required
+@staff_required
 def restock_product(product_id):
     data = request.get_json()
     quantity = data.get("quantity")
@@ -301,6 +370,12 @@ def restock_product(product_id):
                 "status": "error",
                 "message": "Product not found"
             }, 404
+
+        if not staff_can_manage_product(product):
+            return {
+                "status": "error",
+                "message": "You can only restock products in your assigned warehouse"
+            }, 403
 
         new_stock = product["stock_quantity"] + quantity
 

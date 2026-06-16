@@ -132,14 +132,7 @@ function Categories({ setPage }) {
           </div>
         )}
       </section>
-
-      {!isAdmin && (
-        <div className="mb-6 bg-yellow-100 border border-yellow-300 text-yellow-800 px-5 py-4 rounded-xl">
-          You have view-only access. Only Admins can add, edit, or delete
-          categories and products.
-        </div>
-      )}
-
+      
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div
           onClick={() => setPage("inventory")}

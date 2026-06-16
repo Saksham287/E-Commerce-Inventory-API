@@ -80,6 +80,7 @@ function Users() {
           username: data.username,
           role: isAdmin ? data.role : editingUser.role,
           password: data.password,
+          warehouse_id: data.warehouse_id,
         });
 
         setMessage("User updated successfully");
@@ -89,7 +90,13 @@ function Users() {
           return;
         }
 
-        await register(data.username, data.password, data.role);
+        await register(
+          data.username,
+          data.password,
+          data.role,
+          data.warehouse_id
+        );
+
         setMessage("User added successfully");
       }
 
@@ -116,7 +123,7 @@ function Users() {
           </h2>
 
           <p className="text-slate-500">
-            Control access levels and manage team member permissions.
+            Control access levels, warehouse assignments, and team member permissions.
           </p>
         </div>
 
@@ -202,6 +209,10 @@ function Users() {
                   Status
                 </th>
 
+                <th className="px-6 py-4 text-sm text-slate-500 uppercase text-center">
+                  Warehouse
+                </th>
+
                 <th className="px-6 py-4 text-sm text-slate-500 uppercase text-right">
                   Actions
                 </th>
@@ -259,6 +270,14 @@ function Users() {
                       </span>
                     </td>
 
+                    <td className="px-6 py-4 text-center">
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                        {user.role === "Admin"
+                          ? "All Warehouses"
+                          : user.warehouse_name || "Unassigned"}
+                      </span>
+                    </td>
+
                     <td className="px-6 py-4 text-right">
                       {editable && (
                         <button
@@ -294,7 +313,7 @@ function Users() {
               {users.length === 0 && (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="5"
                     className="px-6 py-8 text-center text-slate-500"
                   >
                     No users found.
